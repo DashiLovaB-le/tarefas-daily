@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useCache } from '@/hooks/useCache';
+import { useCache, useNetworkStatus } from '@/hooks/useCache';
 
 const formatCacheSize = (bytes: number): string => {
   if (bytes === 0) return '0 B';
@@ -13,7 +13,8 @@ const formatCacheSize = (bytes: number): string => {
 };
 
 export const CacheStatus: React.FC = () => {
-  const { cacheInfo, isLoading } = useCache();
+  const { cacheInfo, cacheMetrics, isLoading } = useCache();
+  const { isOnline } = useNetworkStatus();
 
   if (isLoading) {
     return (
@@ -28,6 +29,11 @@ export const CacheStatus: React.FC = () => {
     );
   }
 
+  const hits = cacheMetrics?.hits || 0;
+  const misses = cacheMetrics?.misses || 0;
+  const totalRequests = hits + misses;
+  const hitRate = totalRequests > 0 ? (hits / totalRequests) * 100 : 0;
+
   return (
     <Card>
       <CardHeader>
@@ -37,34 +43,30 @@ export const CacheStatus: React.FC = () => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-sm font-medium">Cache Hits</p>
-            <p className="text-2xl font-bold text-green-600">{cacheInfo.hits}</p>
+            <p className="text-2xl font-bold text-green-600">{hits}</p>
           </div>
           <div>
             <p className="text-sm font-medium">Cache Misses</p>
-            <p className="text-2xl font-bold text-red-600">{cacheInfo.misses}</p>
+            <p className="text-2xl font-bold text-red-600">{misses}</p>
           </div>
         </div>
         
         <div>
           <p className="text-sm font-medium">Taxa de Acerto</p>
-          <p className="text-lg font-semibold">
-            {cacheInfo.hits + cacheInfo.misses > 0 
-              ? ((cacheInfo.hits / (cacheInfo.hits + cacheInfo.misses)) * 100).toFixed(1)
-              : 0}%
-          </p>
+          <p className="text-lg font-semibold">{hitRate.toFixed(1)}%</p>
         </div>
 
         <div>
           <p className="text-sm font-medium">Tamanho do Cache</p>
-          <p className="text-lg font-semibold">{formatCacheSize(cacheInfo.size)}</p>
+          <p className="text-lg font-semibold">{formatCacheSize(cacheInfo?.estimatedSize || 0)}</p>
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Badge variant={cacheInfo.isOnline ? "default" : "destructive"}>
-            {cacheInfo.isOnline ? 'Online' : 'Offline'}
+          <Badge variant={isOnline ? "default" : "destructive"}>
+            {isOnline ? 'Online' : 'Offline'}
           </Badge>
           <Badge variant="outline">
-            Service Worker: {cacheInfo.swStatus}
+            Service Worker: {cacheInfo?.isSupported ? 'Ativo' : 'Inativo'}
           </Badge>
         </div>
       </CardContent>
