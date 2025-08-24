@@ -130,17 +130,32 @@ const staleWhileRevalidate = async (request) => {
   console.log('Service Worker: Stale-while-revalidate para:', request.url);
   const cachedResponse = await caches.match(request);
   
-  // Busca da rede em paralelo
-  const fetchPromise = fetch(request).then((networkResponse) => {
+  // Busca da rede em paralelo para atualizar o cache
+  const fetchPromise = fetch(request).then(async (networkResponse) => {
     if (networkResponse && networkResponse.status === 200) {
-      const cache = caches.open(CACHE_NAME);
-      cache.then(c => c.put(request, networkResponse.clone()));
+      try {
+        const cache = await caches.open(CACHE_NAME);
+        // Clona a resposta antes de usar
+        await cache.put(request, networkResponse.clone());
+      } catch (error) {
+        console.warn('Service Worker: Erro ao atualizar cache:', error);
+      }
     }
     return networkResponse;
-  }).catch(() => null);
+  }).catch((error) => {
+    console.warn('Service Worker: Erro na rede:', error);
+    return null;
+  });
   
-  // Retorna do cache imediatamente se disponível, senão espera a rede
-  return cachedResponse || fetchPromise;
+  // Se tem cache, retorna imediatamente e atualiza em background
+  if (cachedResponse) {
+    // Atualiza em background sem bloquear
+    fetchPromise.catch(() => {}); // Ignora erros silenciosamente
+    return cachedResponse;
+  }
+  
+  // Se não tem cache, espera a rede
+  return fetchPromise || new Response('', { status: 404 });
 };
 
 // Interceptação de requisições com estratégias inteligentes
