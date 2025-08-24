@@ -187,7 +187,7 @@ const Dashboard = () => {
             due_date: taskData.dueDate,
             status: 'pending',
             is_starred: false,
-            project_id: taskData.project,
+            project_id: taskData.project && taskData.project !== '' ? taskData.project : null,
             user_id: user.id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()

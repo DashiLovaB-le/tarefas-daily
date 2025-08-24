@@ -5,11 +5,11 @@ AddType text/css .css
 AddType application/json .json
 AddType application/manifest+json .webmanifest
 
-# Headers para PWA
+# Headers para PWA e correção de MIME types
 <IfModule mod_headers.c>
     # Service Worker
     <FilesMatch "sw\.js$">
-        Header set Content-Type "application/javascript"
+        Header set Content-Type "application/javascript; charset=utf-8"
         Header set Cache-Control "no-cache, no-store, must-revalidate"
         Header set Pragma "no-cache"
         Header set Expires "0"
@@ -17,17 +17,35 @@ AddType application/manifest+json .webmanifest
     
     # Manifest
     <FilesMatch "manifest\.json$">
-        Header set Content-Type "application/manifest+json"
+        Header set Content-Type "application/manifest+json; charset=utf-8"
     </FilesMatch>
     
-    # JavaScript modules
+    # JavaScript modules - correção específica para módulos ES6
     <FilesMatch "\.(js|mjs)$">
-        Header set Content-Type "application/javascript; charset=utf-8"
+        Header always set Content-Type "application/javascript; charset=utf-8"
+        Header always set X-Content-Type-Options "nosniff"
     </FilesMatch>
     
     # CSS files
     <FilesMatch "\.css$">
         Header set Content-Type "text/css; charset=utf-8"
+    </FilesMatch>
+    
+    # Correção para arquivos de chunk do Vite
+    <FilesMatch "index-.*\.js$">
+        Header always set Content-Type "application/javascript; charset=utf-8"
+    </FilesMatch>
+    
+    <FilesMatch "vendor-.*\.js$">
+        Header always set Content-Type "application/javascript; charset=utf-8"
+    </FilesMatch>
+    
+    <FilesMatch "ui-.*\.js$">
+        Header always set Content-Type "application/javascript; charset=utf-8"
+    </FilesMatch>
+    
+    <FilesMatch "supabase-.*\.js$">
+        Header always set Content-Type "application/javascript; charset=utf-8"
     </FilesMatch>
 </IfModule>
 

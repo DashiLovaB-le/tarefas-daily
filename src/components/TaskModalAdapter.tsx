@@ -36,7 +36,7 @@ const TaskModalAdapter = ({
       status: 'pending',
       dueDate: taskData.dueDate,
       tags: taskData.tags || [],
-      project: taskData.project || "",
+      project: taskData.project && taskData.project !== "" ? taskData.project : undefined,
       assignee: taskData.assignee || ""
     }
     onSubmit(task)

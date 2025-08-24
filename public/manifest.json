@@ -4,48 +4,22 @@
   "name": "DashiTask - Controle de Tarefas",
   "icons": [
     {
-      "src": "icons/icon-16.png",
-      "type": "image/png",
-      "sizes": "16x16"
-    },
-    {
-      "src": "icons/icon-32.png",
-      "type": "image/png",
-      "sizes": "32x32"
-    },
-    {
-      "src": "icons/icon-192.png",
+      "src": "./icons/icon-192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "./icons/icon-512.png",
       "type": "image/png",
       "sizes": "512x512"
-    },
-    {
-      "src": "icons/maskable-icon-192.png",
-      "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "maskable"
     }
   ],
-  "start_url": "/",
+  "start_url": "./",
   "background_color": "#0f172a",
   "display": "standalone",
-  "scope": "/",
+  "scope": "./",
   "theme_color": "#2563eb",
-  "shortcuts": [
-    {
-      "name": "Nova Tarefa",
-      "short_name": "Criar",
-      "description": "Criar uma nova tarefa",
-      "url": "/?action=create",
-      "icons": [{ "src": "icons/new-task.png", "sizes": "192x192" }]
-    }
-  ],
   "description": "Sistema moderno e intuitivo para gerenciamento de tarefas pessoais e em equipe",
   "categories": ["productivity", "utilities"],
-  "lang": "pt-BR",
-  "orientation": "portrait-primary"
+  "lang": "pt-BR"
 }
