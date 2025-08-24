@@ -84,6 +84,7 @@ const Dashboard = () => {
       setTasks(mappedTasks)
     } catch (error) {
       console.error('Erro ao buscar tarefas:', error)
+      toast.error('Erro ao carregar tarefas')
     } finally {
       setLoading(false)
     }
@@ -175,19 +176,24 @@ const Dashboard = () => {
   const handleCreateTask = async (taskData: Record<string, any>) => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        toast.error('Usuário não autenticado')
+        return
+      }
+
+      console.log('Criando tarefa com dados:', taskData)
 
       const { data, error } = await supabase
         .from('tasks')
         .insert([
           {
             title: taskData.title,
-            description: taskData.description,
-            priority: taskData.priority,
+            description: taskData.description || '',
+            priority: taskData.priority || 'medium',
             due_date: taskData.dueDate,
             status: 'pending',
             is_starred: false,
-            project_id: null, // Por enquanto, não associar a projetos até implementarmos seleção de projetos
+            project_id: null, // Por enquanto, não associar a projetos
             user_id: user.id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
@@ -196,7 +202,13 @@ const Dashboard = () => {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Erro ao inserir tarefa:', error)
+        toast.error('Erro ao criar tarefa: ' + error.message)
+        return
+      }
+
+      console.log('Tarefa criada com sucesso:', data)
       
       // Mapear dados do Supabase para o formato esperado
       const newTask = {
@@ -212,9 +224,11 @@ const Dashboard = () => {
       }
 
       setTasks(prev => [newTask, ...prev])
+      toast.success('Tarefa criada com sucesso!')
       setIsTaskModalOpen(false)
     } catch (error) {
       console.error('Erro ao criar tarefa:', error)
+      toast.error('Erro inesperado ao criar tarefa')
     }
   }
 
