@@ -1,222 +1,263 @@
-interface NotificationPermission {
-  granted: boolean;
-  denied: boolean;
-  default: boolean;
+
+// Tipos para notificações que funcionam em todos os navegadores
+interface BasicNotificationOptions {
+  body?: string;
+  icon?: string;
+  badge?: string;
+  tag?: string;
+  requireInteraction?: boolean;
+  silent?: boolean;
+  timestamp?: number;
+  data?: any;
 }
 
-interface PushSubscription {
-  endpoint: string;
-  keys: {
-    p256dh: string;
-    auth: string;
-  };
+// Interface extendida para navegadores que suportam recursos avançados
+interface ExtendedNotificationOptions extends BasicNotificationOptions {
+  vibrate?: number[];
+  actions?: NotificationAction[];
+}
+
+export interface NotificationData {
+  title: string;
+  body: string;
+  type: 'general' | 'task-reminder' | 'task-overdue' | 'project-update';
+  taskId?: string;
+  projectId?: string;
+  url?: string;
 }
 
 class NotificationManager {
-  private vapidPublicKey = 'BEl62iUYgUivxIkv69yViEuiBIa40HI80NM9f8HtLlVLVWjbzgSjN6QkDJFHOtdqKZXm0i9JMiVGOiGzcGbVkOo'; // Chave VAPID pública (exemplo)
+  private permission: NotificationPermission = 'default';
+  private isSupported: boolean = false;
 
-  async requestPermission(): Promise<NotificationPermission> {
-    if (!('Notification' in window)) {
-      console.warn('Notifications: Este navegador não suporta notificações');
-      return { granted: false, denied: true, default: false };
-    }
-
-    if (!('serviceWorker' in navigator)) {
-      console.warn('Notifications: Service Worker não suportado');
-      return { granted: false, denied: true, default: false };
-    }
-
-    let permission = Notification.permission;
-
-    if (permission === 'default') {
-      permission = await Notification.requestPermission();
-    }
-
-    const result = {
-      granted: permission === 'granted',
-      denied: permission === 'denied',
-      default: permission === 'default'
-    };
-
-    console.log('Notifications: Permissão atual:', permission);
-    return result;
-  }
-
-  async subscribeToPush(): Promise<PushSubscription | null> {
-    try {
-      const permission = await this.requestPermission();
-      
-      if (!permission.granted) {
-        console.log('Notifications: Permissão negada pelo usuário');
-        return null;
-      }
-
-      const registration = await navigator.serviceWorker.ready;
-      
-      // Verifica se já existe uma inscrição
-      let subscription = await registration.pushManager.getSubscription();
-      
-      if (!subscription) {
-        // Cria nova inscrição
-        subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey)
-        });
-        
-        console.log('Notifications: Nova inscrição criada');
-      } else {
-        console.log('Notifications: Usando inscrição existente');
-      }
-
-      // Converte para formato JSON
-      const subscriptionJson = subscription.toJSON();
-      
-      return {
-        endpoint: subscriptionJson.endpoint!,
-        keys: {
-          p256dh: subscriptionJson.keys!.p256dh!,
-          auth: subscriptionJson.keys!.auth!
-        }
-      };
-    } catch (error) {
-      console.error('Notifications: Erro ao inscrever para push:', error);
-      return null;
+  constructor() {
+    this.isSupported = 'Notification' in window && 'serviceWorker' in navigator;
+    if (this.isSupported) {
+      this.permission = Notification.permission;
     }
   }
 
-  async unsubscribeFromPush(): Promise<boolean> {
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-      
-      if (subscription) {
-        const success = await subscription.unsubscribe();
-        console.log('Notifications: Desinscrição realizada:', success);
-        return success;
-      }
-      
+  async requestPermission(): Promise<boolean> {
+    if (!this.isSupported) {
+      console.warn('Notificações não são suportadas neste navegador');
+      return false;
+    }
+
+    if (this.permission === 'granted') {
       return true;
+    }
+
+    try {
+      const permission = await Notification.requestPermission();
+      this.permission = permission;
+      return permission === 'granted';
     } catch (error) {
-      console.error('Notifications: Erro ao desincrever:', error);
+      console.error('Erro ao solicitar permissão para notificações:', error);
       return false;
     }
   }
 
-  async showLocalNotification(title: string, options: NotificationOptions = {}): Promise<void> {
-    const permission = await this.requestPermission();
+  async showNotification(data: NotificationData): Promise<void> {
+    const hasPermission = await this.requestPermission();
     
-    if (!permission.granted) {
-      console.log('Notifications: Não é possível mostrar notificação sem permissão');
+    if (!hasPermission) {
+      console.warn('Permissão para notificações negada');
       return;
     }
 
-    const defaultOptions: NotificationOptions = {
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
-      vibrate: [100, 50, 100],
-      requireInteraction: false,
-      ...options
-    };
-
     try {
+      // Tentar enviar via Service Worker primeiro
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.ready;
-        await registration.showNotification(title, defaultOptions);
+        await this.showServiceWorkerNotification(registration, data);
       } else {
-        new Notification(title, defaultOptions);
+        // Fallback para notificação básica
+        this.showBasicNotification(data);
       }
-      
-      console.log('Notifications: Notificação local exibida');
     } catch (error) {
-      console.error('Notifications: Erro ao exibir notificação:', error);
+      console.error('Erro ao exibir notificação:', error);
+      // Fallback para notificação básica
+      this.showBasicNotification(data);
     }
   }
 
-  async scheduleTaskReminder(taskId: string, taskTitle: string, dueDate: Date): Promise<void> {
-    const now = new Date();
-    const timeUntilDue = dueDate.getTime() - now.getTime();
-    
-    // Agenda notificação 1 hora antes do prazo
-    const reminderTime = timeUntilDue - (60 * 60 * 1000); // 1 hora em ms
-    
-    if (reminderTime > 0) {
-      setTimeout(() => {
-        this.showLocalNotification(
-          'Lembrete de Tarefa',
-          {
-            body: `A tarefa "${taskTitle}" vence em 1 hora!`,
-            tag: `task-reminder-${taskId}`,
-            data: { taskId, type: 'reminder' },
-            actions: [
-              {
-                action: 'view',
-                title: 'Ver Tarefa'
-              },
-              {
-                action: 'complete',
-                title: 'Marcar como Concluída'
-              }
-            ]
-          }
-        );
-      }, reminderTime);
-      
-      console.log(`Notifications: Lembrete agendado para tarefa ${taskId} em ${reminderTime}ms`);
-    }
-  }
-
-  async sendTaskNotification(taskTitle: string, message: string, taskId?: string): Promise<void> {
-    await this.showLocalNotification(
-      'DashiTask',
-      {
-        body: message,
-        tag: taskId ? `task-${taskId}` : 'general',
-        data: { taskId, type: 'task-update' },
-        actions: [
-          {
-            action: 'view',
-            title: 'Ver Detalhes'
-          }
-        ]
+  private async showServiceWorkerNotification(
+    registration: ServiceWorkerRegistration, 
+    data: NotificationData
+  ): Promise<void> {
+    const options: BasicNotificationOptions = {
+      body: data.body,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      tag: data.type,
+      requireInteraction: data.type === 'task-overdue',
+      data: {
+        dateOfArrival: Date.now(),
+        type: data.type,
+        taskId: data.taskId,
+        projectId: data.projectId,
+        url: data.url || '/'
       }
-    );
+    };
+
+    // Adicionar vibração se suportado
+    if ('vibrate' in navigator) {
+      (options as any).vibrate = [100, 50, 100];
+    }
+
+    // Adicionar ações se suportado
+    const extendedOptions = options as ExtendedNotificationOptions;
+    
+    switch (data.type) {
+      case 'task-reminder':
+        if (this.supportsActions()) {
+          extendedOptions.actions = [
+            {
+              action: 'view-task',
+              title: 'Ver Tarefa'
+            },
+            {
+              action: 'complete-task', 
+              title: 'Marcar como Concluída'
+            }
+          ];
+        }
+        break;
+      case 'task-overdue':
+        if (this.supportsActions()) {
+          extendedOptions.actions = [
+            {
+              action: 'view-task',
+              title: 'Ver Tarefa'
+            },
+            {
+              action: 'snooze',
+              title: 'Adiar'
+            }
+          ];
+        }
+        break;
+      case 'project-update':
+        if (this.supportsActions()) {
+          extendedOptions.actions = [
+            {
+              action: 'view-project',
+              title: 'Ver Projeto'
+            }
+          ];
+        }
+        break;
+      default:
+        if (this.supportsActions()) {
+          extendedOptions.actions = [
+            {
+              action: 'open-app',
+              title: 'Abrir App'
+            }
+          ];
+        }
+    }
+
+    await registration.showNotification(data.title, options);
   }
 
-  isSupported(): boolean {
-    return 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
+  private showBasicNotification(data: NotificationData): void {
+    const options: NotificationOptions = {
+      body: data.body,
+      icon: '/icons/icon-192.png',
+      tag: data.type,
+      data: {
+        type: data.type,
+        taskId: data.taskId,
+        projectId: data.projectId,
+        url: data.url || '/'
+      }
+    };
+
+    const notification = new Notification(data.title, options);
+    
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+      
+      // Navegar para a URL apropriada
+      const targetUrl = data.url || '/';
+      if (window.location.pathname !== targetUrl) {
+        window.location.href = targetUrl;
+      }
+    };
+
+    // Auto-fechar após 5 segundos se não for urgente
+    if (data.type !== 'task-overdue') {
+      setTimeout(() => {
+        notification.close();
+      }, 5000);
+    }
+  }
+
+  private supportsActions(): boolean {
+    return 'serviceWorker' in navigator && 'showNotification' in ServiceWorkerRegistration.prototype;
   }
 
   getPermissionStatus(): NotificationPermission {
-    if (!this.isSupported()) {
-      return { granted: false, denied: true, default: false };
-    }
-
-    const permission = Notification.permission;
-    return {
-      granted: permission === 'granted',
-      denied: permission === 'denied',
-      default: permission === 'default'
-    };
+    return this.permission;
   }
 
-  private urlBase64ToUint8Array(base64String: string): Uint8Array {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-      .replace(/-/g, '+')
-      .replace(/_/g, '/');
+  isNotificationSupported(): boolean {
+    return this.isSupported;
+  }
 
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
+  // Métodos de conveniência para diferentes tipos de notificação
+  async showTaskReminder(taskTitle: string, taskId: string): Promise<void> {
+    await this.showNotification({
+      title: 'Lembrete de Tarefa',
+      body: `Não se esqueça: ${taskTitle}`,
+      type: 'task-reminder',
+      taskId,
+      url: `/?task=${taskId}`
+    });
+  }
 
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
+  async showTaskOverdue(taskTitle: string, taskId: string): Promise<void> {
+    await this.showNotification({
+      title: 'Tarefa Atrasada',
+      body: `A tarefa "${taskTitle}" está atrasada!`,
+      type: 'task-overdue',
+      taskId,
+      url: `/?task=${taskId}`
+    });
+  }
+
+  async showProjectUpdate(projectName: string, projectId: string): Promise<void> {
+    await this.showNotification({
+      title: 'Atualização do Projeto',
+      body: `Há atualizações no projeto ${projectName}`,
+      type: 'project-update',
+      projectId,
+      url: `/projects?id=${projectId}`
+    });
+  }
+
+  async showGeneralNotification(title: string, message: string): Promise<void> {
+    await this.showNotification({
+      title,
+      body: message,
+      type: 'general'
+    });
   }
 }
 
-// Instância singleton
-export const notificationManager = new NotificationManager();
+export const notifications = new NotificationManager();
 
-// Tipos para exportação
-export type { NotificationPermission, PushSubscription };
+// Função para inicializar notificações no app
+export const initializeNotifications = async (): Promise<boolean> => {
+  if (notifications.isNotificationSupported()) {
+    return await notifications.requestPermission();
+  }
+  return false;
+};
+
+// Função para verificar se as notificações estão habilitadas
+export const areNotificationsEnabled = (): boolean => {
+  return notifications.getPermissionStatus() === 'granted';
+};
