@@ -42,11 +42,11 @@ export interface NotificationData {
 
 class NotificationManager {
   private permission: string = 'default';
-  private isSupported: boolean = false;
+  private supported: boolean = false;
 
   constructor() {
-    this.isSupported = 'Notification' in window && 'serviceWorker' in navigator;
-    if (this.isSupported && 'Notification' in window) {
+    this.supported = 'Notification' in window && 'serviceWorker' in navigator;
+    if (this.supported && 'Notification' in window) {
       this.permission = Notification.permission;
     }
   }
@@ -60,11 +60,11 @@ class NotificationManager {
   }
 
   isSupported(): boolean {
-    return this.isSupported;
+    return this.supported;
   }
 
   async requestPermission(): Promise<NotificationPermission> {
-    if (!this.isSupported) {
+    if (!this.supported) {
       console.warn('Notificações não são suportadas neste navegador');
       return { granted: false, denied: true, default: false };
     }
@@ -85,7 +85,7 @@ class NotificationManager {
   }
 
   async subscribeToPush(): Promise<PushSubscription | null> {
-    if (!this.isSupported || !('serviceWorker' in navigator)) {
+    if (!this.supported || !('serviceWorker' in navigator)) {
       return null;
     }
 
