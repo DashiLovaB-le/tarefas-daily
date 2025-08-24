@@ -2,24 +2,27 @@
 {
   "short_name": "DashiTask",
   "name": "DashiTask - Controle de Tarefas",
+  "description": "Sistema moderno e intuitivo para gerenciamento de tarefas pessoais e em equipe",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "scope": "./",
+  "lang": "pt-BR",
+  "categories": ["productivity", "utilities"],
+  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "./icons/icon-192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
-      "src": "./icons/icon-512.png",
+      "src": "./icons/icon-512.png", 
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
-  ],
-  "start_url": "./",
-  "background_color": "#0f172a",
-  "display": "standalone",
-  "scope": "./",
-  "theme_color": "#2563eb",
-  "description": "Sistema moderno e intuitivo para gerenciamento de tarefas pessoais e em equipe",
-  "categories": ["productivity", "utilities"],
-  "lang": "pt-BR"
+  ]
 }

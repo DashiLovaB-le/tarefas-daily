@@ -1,13 +1,16 @@
+
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 
 createRoot(document.getElementById("root")!).render(<App />);
 
-// Registro do service worker (temporariamente desabilitado para debug)
-if ('serviceWorker' in navigator && false) { // Desabilitado temporariamente
+// Registro do service worker com verificação de MIME type
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+    navigator.serviceWorker.register('./sw.js', {
+      type: 'module'
+    })
       .then((registration) => {
         console.log('SW registrado com sucesso:', registration);
         

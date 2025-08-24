@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
@@ -16,33 +17,37 @@
     <meta name="application-name" content="DashiTask">
     <meta name="msapplication-TileColor" content="#2563eb">
     <meta name="msapplication-TileImage" content="/icons/mstile-150x150.png">
+    
+    <!-- Preconnect para fontes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Manifest -->
-    <link rel="manifest" href="/manifest.json">
+    <!-- Manifest PWA -->
+    <link rel="manifest" href="./manifest.json" type="application/manifest+json">
     
     <!-- Ícones PWA -->
-    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png">
-    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./icons/icon-16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./icons/icon-32.png">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
     
     <!-- Fallback para ícone antigo -->
-    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="icon" type="image/png" href="./logo.png" />
 
+    <!-- Open Graph -->
     <meta property="og:title" content="DashiTask - Controle de Tarefas" />
     <meta property="og:description" content="Sistema moderno e intuitivo para gerenciamento de tarefas pessoais e em equipe" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/logo.png" />
+    <meta property="og:image" content="./logo.png" />
 
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@dashitechnology" />
-    <meta name="twitter:image" content="/logo.png" />
+    <meta name="twitter:image" content="./logo.png" />
   </head>
 
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="./src/main.tsx"></script>
   </body>
 </html>

@@ -12,6 +12,9 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     fs: {
       strict: false
+    },
+    headers: {
+      'Content-Type': 'application/javascript; charset=utf-8'
     }
   },
   plugins: [
@@ -32,7 +35,14 @@ export default defineConfig(({ mode }) => ({
       output: {
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]',
+        assetFileNames: (assetInfo) => {
+          const info = assetInfo.name.split('.');
+          const ext = info[info.length - 1];
+          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext)) {
+            return `assets/images/[name]-[hash].[ext]`;
+          }
+          return `assets/[name]-[hash].[ext]`;
+        },
         manualChunks: {
           vendor: ['react', 'react-dom'],
           supabase: ['@supabase/supabase-js'],
@@ -41,5 +51,8 @@ export default defineConfig(({ mode }) => ({
       }
     }
   },
-  assetsInclude: ['**/*.woff', '**/*.woff2', '**/*.ttf', '**/*.otf']
+  assetsInclude: ['**/*.woff', '**/*.woff2', '**/*.ttf', '**/*.otf'],
+  esbuild: {
+    charset: 'utf8'
+  }
 }));
