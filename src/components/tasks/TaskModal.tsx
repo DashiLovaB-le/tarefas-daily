@@ -11,12 +11,15 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+  ResponsiveModalFooter,
+} from "@/components/ui/responsive-modal"
 import { Label } from "@/components/ui/label"
+import { useMobile } from "@/hooks/use-mobile"
+import { cn } from "@/lib/utils"
 
 interface TaskModalProps {
   isOpen: boolean
@@ -43,6 +46,7 @@ const TaskModal = ({
   initialData,
   mode = "create" 
 }: TaskModalProps) => {
+  const isMobile = useMobile()
   const [formData, setFormData] = useState<TaskFormData>({
     title: initialData?.title || "",
     description: initialData?.description || "",
@@ -98,15 +102,27 @@ const TaskModal = ({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="nm-card max-w-2xl max-h-[90vh] overflow-y-auto border-0">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">
+    <ResponsiveModal isOpen={isOpen} onOpenChange={onClose}>
+      <ResponsiveModalContent className={cn(
+        "nm-card border-0",
+        // Desktop: modal tradicional
+        "sm:max-w-2xl sm:max-h-[90vh]",
+        // Mobile: drawer ocupa mais espaço
+        isMobile && "max-h-[85vh]"
+      )}>
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle className="text-xl font-semibold">
             {mode === "create" ? "Nova Tarefa" : "Editar Tarefa"}
-          </DialogTitle>
-        </DialogHeader>
+          </ResponsiveModalTitle>
+        </ResponsiveModalHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className={cn(
+          "space-y-4 sm:space-y-6",
+          // Padding responsivo
+          "px-4 sm:px-6",
+          // Scroll para mobile
+          isMobile && "overflow-y-auto flex-1"
+        )}>
           {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="title" className="text-sm font-medium">
@@ -117,7 +133,11 @@ const TaskModal = ({
               value={formData.title}
               onChange={(e) => handleInputChange("title", e.target.value)}
               placeholder="Título da tarefa..."
-              className={errors.title ? "border-destructive" : ""}
+              className={cn(
+                errors.title ? "border-destructive" : "",
+                // Altura mínima para touch em mobile
+                isMobile && "min-h-[44px]"
+              )}
             />
             {errors.title && (
               <p className="text-sm text-destructive">{errors.title}</p>
@@ -134,13 +154,17 @@ const TaskModal = ({
               value={formData.description}
               onChange={(e) => handleInputChange("description", e.target.value)}
               placeholder="Descreva a tarefa..."
-              rows={3}
+              rows={isMobile ? 2 : 3}
               className="resize-none"
             />
           </div>
 
           {/* Grid Layout for smaller fields */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={cn(
+            "grid gap-4",
+            // Mobile: sempre 1 coluna, Desktop: 2 colunas
+            "grid-cols-1 sm:grid-cols-2"
+          )}>
             {/* Priority */}
             <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center gap-2">
@@ -190,7 +214,11 @@ const TaskModal = ({
                 type="date"
                 value={formData.dueDate}
                 onChange={(e) => handleInputChange("dueDate", e.target.value)}
-                className={errors.dueDate ? "border-destructive" : ""}
+                className={cn(
+                  errors.dueDate ? "border-destructive" : "",
+                  // Altura mínima para touch em mobile
+                  isMobile && "min-h-[44px]"
+                )}
               />
               {errors.dueDate && (
                 <p className="text-sm text-destructive">{errors.dueDate}</p>
@@ -229,6 +257,10 @@ const TaskModal = ({
                 value={formData.assignee}
                 onChange={(e) => handleInputChange("assignee", e.target.value)}
                 placeholder="Nome do responsável"
+                className={cn(
+                  // Altura mínima para touch em mobile
+                  isMobile && "min-h-[44px]"
+                )}
               />
             </div>
           </div>
@@ -239,10 +271,18 @@ const TaskModal = ({
               <Paperclip className="w-4 h-4" />
               Anexos
             </Label>
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
-              <Paperclip className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+            <div className={cn(
+              "border-2 border-dashed border-muted-foreground/25 rounded-lg text-center",
+              // Padding responsivo
+              "p-4 sm:p-8"
+            )}>
+              <Paperclip className={cn(
+                "text-muted-foreground mx-auto mb-2",
+                // Ícone menor em mobile
+                "w-6 h-6 sm:w-8 sm:h-8"
+              )} />
               <p className="text-sm text-muted-foreground">
-                Arraste arquivos aqui ou clique para selecionar
+                {isMobile ? "Toque para selecionar" : "Arraste arquivos aqui ou clique para selecionar"}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 PNG, JPG, PDF até 10MB
@@ -250,25 +290,39 @@ const TaskModal = ({
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 justify-end pt-4 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              className="gradient-button"
-            >
-              {mode === "create" ? "Criar Tarefa" : "Salvar Alterações"}
-            </Button>
-          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+
+        {/* Action Buttons */}
+        <ResponsiveModalFooter className={cn(
+          "gap-3 pt-4 border-t",
+          // Mobile: botões empilhados, Desktop: lado a lado
+          isMobile ? "flex-col-reverse" : "flex-row justify-end"
+        )}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className={cn(
+              // Botões full-width em mobile
+              isMobile && "w-full"
+            )}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            className={cn(
+              "gradient-button",
+              // Botões full-width em mobile
+              isMobile && "w-full"
+            )}
+            onClick={handleSubmit}
+          >
+            {mode === "create" ? "Criar Tarefa" : "Salvar Alterações"}
+          </Button>
+        </ResponsiveModalFooter>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   )
 }
 

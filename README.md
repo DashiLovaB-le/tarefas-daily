@@ -1,73 +1,100 @@
-# Bem-vindo ao seu projeto Lovable
+# Tarefas Daily - Gerenciador de Tarefas Moderno
 
-## Informações do projeto
+Um moderno e responsivo gerenciador de tarefas (To-Do list) construído com as tecnologias mais recentes do ecossistema React, projetado para organizar seu dia a dia com eficiência e estilo.
 
-**URL**: https://lovable.dev/projects/b3aa3fef-179a-4265-92e9-406b22546e9a
+<!-- Adicione um screenshot da aplicação aqui quando possível -->
+<!-- ![Screenshot da Aplicação](caminho/para/screenshot.png) -->
 
-## Como posso editar este código?
+---
 
-Existem várias maneiras de editar sua aplicação.
+## ✨ Funcionalidades
 
-**Use o Lovable**
+### Gerenciamento Completo de Tarefas
+- **Criação Rápida:** Adicione novas tarefas através de um modal intuitivo.
+- **Edição e Exclusão:** Modifique ou remova tarefas com facilidade.
+- **Status da Tarefa:** Marque tarefas como **concluídas** ou **pendentes** com um único clique.
+- **Priorização:** Destaque tarefas importantes marcando-as como **favoritas** (com estrela).
+- **Atributos Detalhados:** Adicione contexto às suas tarefas com:
+  - Prioridade (Alta, Média, Baixa)
+  - Data de Vencimento
+  - Projeto Associado
+  - Responsável pela Tarefa
 
-Simplesmente visite o [Projeto Lovable](https://lovable.dev/projects/b3aa3fef-179a-4265-92e9-406b22546e9a) e comece a fazer prompts.
+### Organização e Visualização Inteligente
+- **Dashboard Principal:** Tenha uma visão geral do seu progresso com estatísticas de tarefas totais, pendentes, concluídas e para hoje.
+- **Filtros Dinâmicos:** Encontre o que precisa rapidamente com:
+  - **Busca por texto** no título e na descrição.
+  - **Filtro por status** (pendentes ou concluídas).
+  - **Filtro por prioridade**.
+- **Vistas Dedicadas:** Navegue por seções pré-definidas para focar no que importa:
+  - `Hoje`: Tarefas com vencimento no dia atual.
+  - `Próximas`: Tarefas futuras.
+  - `Favoritas`: Tarefas marcadas com estrela.
+  - `Concluídas`: Histórico de tarefas finalizadas.
+- **Agrupamento por Projetos:** Organize e visualize tarefas dentro de contextos ou projetos específicos.
 
-As alterações feitas via Lovable serão commitadas automaticamente neste repositório.
+### Experiência do Usuário
+- **Design Responsivo:** A interface se adapta perfeitamente a desktops, tablets e celulares.
+- **Tema Claro e Escuro (Light/Dark Mode):** Alterne entre os temas para melhor conforto visual (dependência `next-themes` inclusa).
+- **Notificações (Toasts):** Receba feedback visual para ações como criação ou exclusão de tarefas.
+- **Navegação Intuitiva:** Uma sidebar lateral colapsável permite focar no conteúdo e navegar facilmente entre as seções.
 
-**Use seu IDE preferido**
+---
 
-Se você quiser trabalhar localmente usando seu próprio IDE, pode clonar este repositório e fazer push das alterações. As alterações enviadas também serão refletidas no Lovable.
+## 🚀 Tecnologias Utilizadas
 
-O único requisito é ter o Node.js e npm instalados - [instalar com nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **Framework Frontend:** [React](https://react.dev/)
+- **Build Tool:** [Vite](https://vitejs.dev/)
+- **Linguagem:** [TypeScript](https://www.typescriptlang.org/)
+- **Estilização:** [Tailwind CSS](https://tailwindcss.com/)
+- **Componentes UI:** [shadcn/ui](https://ui.shadcn.com/)
+- **Roteamento:** [React Router DOM](https://reactrouter.com/)
+- **Gerenciamento de Estado de Servidor:** [TanStack Query (React Query)](https://tanstack.com/query/latest)
+- **Gerenciamento de Formulários:** [React Hook Form](https://react-hook-form.com/)
+- **Validação de Esquemas:** [Zod](https://zod.dev/)
+- **Ícones:** [Lucide React](https://lucide.dev/)
 
-Siga estes passos:
+---
 
-```sh
-# Passo 1: Clone o repositório usando a URL Git do projeto.
-git clone <SUA_URL_GIT>
+## 🏁 Como Executar o Projeto
 
-# Passo 2: Navegue até o diretório do projeto.
-cd <NOME_DO_SEU_PROJETO>
+Para executar este projeto localmente, siga os passos abaixo.
 
-# Passo 3: Instale as dependências necessárias.
-npm i
+**Pré-requisitos:**
+- [Node.js](https://nodejs.org/en) (versão 18 ou superior)
+- Um gerenciador de pacotes como `npm`, `yarn` ou `bun`.
 
-# Passo 4: Inicie o servidor de desenvolvimento com auto-reload e preview instantâneo.
-npm run dev
-```
+**Passos:**
 
-**Editar um arquivo diretamente no GitHub**
+1.  **Clone o repositório:**
+    ```bash
+    git clone <URL_DO_SEU_REPOSITORIO_GIT>
+    cd tarefas-daily
+    ```
 
-- Navegue até o(s) arquivo(s) desejado(s).
-- Clique no botão "Edit" (ícone de lápis) no canto superior direito da visualização do arquivo.
-- Faça suas alterações e commit as mudanças.
+2.  **Instale as dependências:**
+    ```bash
+    # Se você usa Bun (recomendado, pois o projeto tem bun.lockb)
+    bun install
 
-**Use o GitHub Codespaces**
+    # Ou com npm
+    npm install
 
-- Navegue até a página principal do seu repositório.
-- Clique no botão "Code" (botão verde) próximo ao canto superior direito.
-- Selecione a aba "Codespaces".
-- Clique em "New codespace" para iniciar um novo ambiente Codespace.
-- Edite arquivos diretamente no Codespace e faça commit e push das suas alterações quando terminar.
+    # Ou com yarn
+    yarn install
+    ```
 
-## Quais tecnologias são usadas neste projeto?
+3.  **Inicie o servidor de desenvolvimento:**
+    ```bash
+    bun run dev
+    ```
+    O servidor iniciará em `http://localhost:5173` (ou outra porta, se a 5173 estiver em uso).
 
-Este projeto é construído com:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 📜 Scripts Disponíveis
 
-## Como posso fazer deploy deste projeto?
-
-Simplesmente abra o [Lovable](https://lovable.dev/projects/b3aa3fef-179a-4265-92e9-406b22546e9a) e clique em Share -> Publish.
-
-## Posso conectar um domínio personalizado ao meu projeto Lovable?
-
-Sim, você pode!
-
-Para conectar um domínio, navegue até Project > Settings > Domains e clique em Connect Domain.
-
-Leia mais aqui: [Configurando um domínio personalizado](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- `npm run dev`: Inicia o servidor de desenvolvimento com Vite.
+- `npm run build`: Compila a aplicação para produção.
+- `npm run lint`: Executa o ESLint para analisar o código em busca de erros e problemas de estilo.
+- `npm run preview`: Inicia um servidor local para visualizar a build de produção.

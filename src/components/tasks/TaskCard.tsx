@@ -1,6 +1,4 @@
-import { useState } from "react"
 import { 
-  Clock, 
   Star, 
   MoreHorizontal, 
   CheckCircle2, 
@@ -67,8 +65,6 @@ const TaskCard = ({
   onEdit,
   onDelete
 }: TaskCardProps) => {
-  const [isHovered, setIsHovered] = useState(false)
-  
   const priorityStyle = priorityConfig[priority]
   
   const formatDate = (date: string) => {
@@ -83,18 +79,25 @@ const TaskCard = ({
   return (
     <div 
       className={cn(
-        "task-card p-4 animate-fade-in group",
+        "task-card animate-fade-in group",
+        // Padding responsivo
+        "p-3 sm:p-4",
         isCompleted && "opacity-75",
         isOverdue && "border-l-4 border-l-red-500"
       )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+
     >
       {/* Header */}
-      <div className="flex items-start gap-3 mb-3">
+      <div className="flex items-start gap-2 sm:gap-3 mb-3">
         <button
           onClick={() => onToggleComplete(id)}
-          className="mt-1 transition-colors"
+          className={cn(
+            "transition-colors flex-shrink-0 rounded-md",
+            // Área de toque adequada para mobile (44px mínimo)
+            "min-w-[44px] min-h-[44px] flex items-center justify-center",
+            "p-2 -m-2 sm:p-1 sm:-m-1"
+          )}
+          aria-label={isCompleted ? "Marcar como pendente" : "Marcar como concluída"}
         >
           {isCompleted ? (
             <CheckCircle2 className="w-5 h-5 text-success" />
@@ -103,35 +106,54 @@ const TaskCard = ({
           )}
         </button>
         
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 pr-2">
           <h3 className={cn(
-            "font-medium text-foreground leading-snug",
+            "font-medium text-foreground leading-snug break-words",
+            // Tamanho de fonte responsivo
+            "text-sm sm:text-base",
             isCompleted && "line-through text-muted-foreground"
           )}>
             {title}
           </h3>
           
           {description && (
-            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+            <p className={cn(
+              "text-muted-foreground mt-1 line-clamp-2 break-words",
+              // Tamanho de fonte responsivo para descrição
+              "text-xs sm:text-sm"
+            )}>
               {description}
             </p>
           )}
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 flex-shrink-0">
           <button
             onClick={() => onToggleStar(id)}
             className={cn(
-              "p-1 rounded transition-colors",
+              "rounded-md transition-colors flex-shrink-0",
+              // Área de toque adequada para mobile (44px mínimo)
+              "min-w-[44px] min-h-[44px] flex items-center justify-center",
+              "p-2 -m-2 sm:p-1 sm:-m-1",
               isStarred ? "text-orange-400" : "text-muted-foreground hover:text-orange-400"
             )}
+            aria-label={isStarred ? "Remover dos favoritos" : "Adicionar aos favoritos"}
           >
             <Star className={cn("w-4 h-4", isStarred && "fill-current")} />
           </button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Button 
+                variant="ghost" 
+                size="icon-sm" 
+                className={cn(
+                  "flex-shrink-0",
+                  // Tamanho de toque adequado para mobile (44px mínimo)
+                  "min-w-[44px] min-h-[44px]"
+                )}
+                aria-label="Mais opções"
+              >
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -148,39 +170,57 @@ const TaskCard = ({
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between text-sm">
-        <div className="flex items-center gap-3">
+      <div className={cn(
+        "text-sm",
+        // Layout responsivo: vertical em mobile, horizontal em desktop
+        "flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
+      )}>
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           {/* Priority Badge */}
           <div className={cn(
-            "inline-flex items-center gap-1 text-xs font-medium",
+            "inline-flex items-center gap-1 font-medium flex-shrink-0",
+            // Tamanho responsivo do badge
+            "text-xs px-2 py-1",
             priorityStyle.color,
             priorityStyle.bg
           )}>
             <Flag className="w-3 h-3" />
-            {priorityStyle.label}
+            <span className="hidden sm:inline">{priorityStyle.label}</span>
+            <span className="sm:hidden">
+              {priority === 'high' ? 'Alta' : priority === 'medium' ? 'Média' : 'Baixa'}
+            </span>
           </div>
 
           {/* Project Tag */}
           {project && (
-            <span className="text-xs text-muted-foreground nm-badge">
+            <span className={cn(
+              "text-muted-foreground nm-badge flex-shrink-0",
+              "text-xs px-2 py-1"
+            )}>
               {project}
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-3 text-muted-foreground">
+        <div className={cn(
+          "flex items-center text-muted-foreground",
+          // Gap responsivo
+          "gap-2 sm:gap-3"
+        )}>
           {/* Assignee */}
           {assignee && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <User className="w-3 h-3" />
-              <span className="text-xs">{assignee}</span>
+              <span className="text-xs truncate max-w-[100px] sm:max-w-none">
+                {assignee}
+              </span>
             </div>
           )}
           
           {/* Due Date */}
           {dueDate && (
             <div className={cn(
-              "flex items-center gap-1",
+              "flex items-center gap-1 flex-shrink-0",
               isOverdue && "text-red-600"
             )}>
               <Calendar className="w-3 h-3" />

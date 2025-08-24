@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* TaskFlow Design System - Neumorphism */
+    /* DashiTask Design System - Neumorphism */
     --background: 210 22% 31%; /* Azul escuro de fundo */
     --foreground: 210 15% 85%; /* Cor do texto */
 
@@ -230,7 +230,7 @@ All colors MUST be HSL.
     font-weight: 500;
   }
 
-  /* TaskFlow Custom Components */
+  /* DashiTask Custom Components */
   .task-card {
     @apply nm-card p-4 animate-fade-in;
   }

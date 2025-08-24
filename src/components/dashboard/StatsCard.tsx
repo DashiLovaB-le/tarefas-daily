@@ -48,23 +48,32 @@ const StatsCard = ({
 
   return (
     <div className={cn(
-      "task-card p-6 animate-fade-in",
+      "task-card animate-fade-in",
+      // Padding responsivo: menor em mobile, maior em desktop
+      "p-4 sm:p-6",
       className
     )}>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
         <div className={cn(
-          "p-3 rounded-xl border",
+          "rounded-xl border",
+          // Tamanho do ícone responsivo
+          "p-2 sm:p-3",
           config.bg,
           config.border
         )}>
-          <div className={cn("w-6 h-6", config.text)}>
+          <div className={cn(
+            // Ícone menor em mobile
+            "w-5 h-5 sm:w-6 sm:h-6", 
+            config.text
+          )}>
             {icon}
           </div>
         </div>
 
         {trend && (
           <div className={cn(
-            "text-xs font-medium",
+            // Texto de trend responsivo
+            "text-xs sm:text-sm font-medium",
             trend.isPositive ? "text-success" : "text-destructive"
           )}>
             {trend.isPositive ? "+" : ""}{trend.value}%
@@ -73,10 +82,18 @@ const StatsCard = ({
       </div>
 
       <div>
-        <h3 className="text-2xl font-bold text-foreground mb-1">
+        <h3 className={cn(
+          "font-bold text-foreground mb-1",
+          // Tamanho do valor responsivo
+          "text-xl sm:text-2xl lg:text-3xl"
+        )}>
           {value}
         </h3>
-        <p className="text-sm text-muted-foreground">
+        <p className={cn(
+          "text-muted-foreground",
+          // Tamanho do título responsivo
+          "text-xs sm:text-sm"
+        )}>
           {title}
         </p>
       </div>

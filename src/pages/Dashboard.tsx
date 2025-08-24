@@ -9,6 +9,9 @@ import {
   Search
 } from "lucide-react"
 import AppSidebar from "@/components/layout/AppSidebar"
+import { useMobile } from "@/hooks/use-mobile"
+import { HamburgerButton } from "@/components/ui/hamburger-button"
+import { cn } from "@/lib/utils"
 import TaskCard from "@/components/tasks/TaskCard"
 import TaskModal from "@/components/tasks/TaskModal"
 import StatsCard from "@/components/dashboard/StatsCard"
@@ -61,11 +64,13 @@ const mockTasks = [
 
 const Dashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [tasks, setTasks] = useState(mockTasks)
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterPriority, setFilterPriority] = useState("all")
   const [filterStatus, setFilterStatus] = useState("all")
+  const isMobile = useMobile()
 
   // Task handlers
   const handleToggleComplete = (id: string) => {
@@ -123,30 +128,57 @@ const Dashboard = () => {
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Sidebar */}
-      <AppSidebar 
-        isCollapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
+      {/* Sidebar - hidden on mobile, overlay when open */}
+      {!isMobile && (
+        <AppSidebar 
+          isCollapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          isMobileMenuOpen={isMobileMenuOpen}
+          onMobileMenuClose={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+      
+      {/* Mobile Sidebar Overlay */}
+      {isMobile && (
+        <AppSidebar 
+          isCollapsed={false}
+          onToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          isMobileMenuOpen={isMobileMenuOpen}
+          onMobileMenuClose={() => setIsMobileMenuOpen(false)}
+        />
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
         <header className="nm-card px-6 py-4 border-0 mx-6 mt-6 mb-0">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-              <p className="text-muted-foreground mt-1">
-                Bem-vindo de volta! Você tem {pendingTasks} tarefas pendentes.
-              </p>
+            <div className="flex items-center gap-4">
+              {/* Hamburger button - visible only on mobile */}
+              {isMobile && (
+                <HamburgerButton
+                  isOpen={isMobileMenuOpen}
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  size="md"
+                  className="md:hidden"
+                />
+              )}
+              
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground">Dashboard</h1>
+                <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+                  Bem-vindo de volta! Você tem {pendingTasks} tarefas pendentes.
+                </p>
+              </div>
             </div>
             
             <Button 
               onClick={() => setIsTaskModalOpen(true)}
               className="gradient-button"
+              size={isMobile ? "sm" : "default"}
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Tarefa
+              <Plus className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Nova Tarefa</span>
             </Button>
           </div>
         </header>
@@ -154,7 +186,7 @@ const Dashboard = () => {
         {/* Content */}
         <main className="flex-1 overflow-auto p-6">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <StatsCard
               title="Total de Tarefas"
               value={totalTasks}
@@ -184,8 +216,12 @@ const Dashboard = () => {
           </div>
 
           {/* Filters */}
-          <div className="nm-card p-6 mb-6 border-0">
-            <div className="flex flex-col sm:flex-row gap-4">
+          <div className={cn(
+            "nm-card border-0 mb-4 sm:mb-6",
+            // Padding responsivo
+            "p-4 sm:p-6"
+          )}>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <div className="flex-1">
                 <div className="relative">
                   <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
@@ -193,34 +229,46 @@ const Dashboard = () => {
                     placeholder="Buscar tarefas..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="nm-input pl-10"
+                    className={cn(
+                      "nm-input pl-10",
+                      // Largura total em mobile
+                      "w-full"
+                    )}
                   />
                 </div>
               </div>
               
-              <Select value={filterPriority} onValueChange={setFilterPriority}>
-                <SelectTrigger className="w-[150px]">
-                  <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas Prioridades</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
-                  <SelectItem value="low">Baixa</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <Select value={filterPriority} onValueChange={setFilterPriority}>
+                  <SelectTrigger className={cn(
+                    // Largura total em mobile, fixa em desktop
+                    "w-full sm:w-[150px]"
+                  )}>
+                    <Filter className="w-4 h-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas Prioridades</SelectItem>
+                    <SelectItem value="high">Alta</SelectItem>
+                    <SelectItem value="medium">Média</SelectItem>
+                    <SelectItem value="low">Baixa</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos Status</SelectItem>
-                  <SelectItem value="pending">Pendentes</SelectItem>
-                  <SelectItem value="completed">Concluídas</SelectItem>
-                </SelectContent>
-              </Select>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className={cn(
+                    // Largura total em mobile, fixa em desktop
+                    "w-full sm:w-[150px]"
+                  )}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos Status</SelectItem>
+                    <SelectItem value="pending">Pendentes</SelectItem>
+                    <SelectItem value="completed">Concluídas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 

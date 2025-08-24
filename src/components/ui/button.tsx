@@ -20,10 +20,11 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 px-3",
-        lg: "h-11 px-8",
-        icon: "h-10 w-10",
+        default: "h-11 px-4 py-2", // Aumentado de h-10 para h-11 (44px)
+        sm: "h-11 px-3", // Aumentado de h-9 para h-11 para garantir 44px mínimo
+        lg: "h-12 px-8", // Aumentado de h-11 para h-12 (48px)
+        icon: "h-11 w-11", // Aumentado de h-10 w-10 para h-11 w-11 (44px)
+        "icon-sm": "h-11 w-11 p-2", // Nova variante para ícones pequenos com área de toque adequada
       },
     },
     defaultVariants: {
