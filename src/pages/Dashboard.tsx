@@ -132,7 +132,7 @@ const Dashboard = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="bg-card border-b border-border/50 px-6 py-4">
+        <header className="nm-card px-6 py-4 border-0 mx-6 mt-6 mb-0">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
@@ -166,7 +166,7 @@ const Dashboard = () => {
               title="Pendentes"
               value={pendingTasks}
               icon={<Clock />}
-              color="warning"
+              color="primary"
             />
             <StatsCard
               title="Concluídas"
@@ -184,7 +184,7 @@ const Dashboard = () => {
           </div>
 
           {/* Filters */}
-          <div className="bg-card rounded-xl border border-border/50 p-6 mb-6">
+          <div className="nm-card p-6 mb-6 border-0">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
@@ -193,7 +193,7 @@ const Dashboard = () => {
                     placeholder="Buscar tarefas..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    className="nm-input pl-10"
                   />
                 </div>
               </div>

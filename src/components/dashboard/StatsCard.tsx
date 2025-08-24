@@ -36,16 +36,16 @@ const colorConfig = {
   }
 }
 
-const StatsCard = ({ 
-  title, 
-  value, 
-  icon, 
-  trend, 
+const StatsCard = ({
+  title,
+  value,
+  icon,
+  trend,
   color = "primary",
-  className 
+  className
 }: StatsCardProps) => {
   const config = colorConfig[color]
-  
+
   return (
     <div className={cn(
       "task-card p-6 animate-fade-in",
@@ -61,7 +61,7 @@ const StatsCard = ({
             {icon}
           </div>
         </div>
-        
+
         {trend && (
           <div className={cn(
             "text-xs font-medium",
@@ -71,7 +71,7 @@ const StatsCard = ({
           </div>
         )}
       </div>
-      
+
       <div>
         <h3 className="text-2xl font-bold text-foreground mb-1">
           {value}

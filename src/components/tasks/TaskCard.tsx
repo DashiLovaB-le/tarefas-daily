@@ -36,21 +36,18 @@ interface TaskCardProps {
 
 const priorityConfig = {
   low: {
-    color: "text-green-600",
-    bg: "bg-green-50",
-    border: "border-green-200",
+    color: "text-green-400",
+    bg: "nm-badge",
     label: "Baixa"
   },
   medium: {
-    color: "text-amber-600", 
-    bg: "bg-amber-50",
-    border: "border-amber-200",
+    color: "text-orange-400", 
+    bg: "nm-badge",
     label: "Média"
   },
   high: {
-    color: "text-red-600",
-    bg: "bg-red-50", 
-    border: "border-red-200",
+    color: "text-red-400",
+    bg: "nm-badge", 
     label: "Alta"
   }
 }
@@ -126,7 +123,7 @@ const TaskCard = ({
             onClick={() => onToggleStar(id)}
             className={cn(
               "p-1 rounded transition-colors",
-              isStarred ? "text-amber-500" : "text-muted-foreground hover:text-amber-500"
+              isStarred ? "text-orange-400" : "text-muted-foreground hover:text-orange-400"
             )}
           >
             <Star className={cn("w-4 h-4", isStarred && "fill-current")} />
@@ -155,10 +152,9 @@ const TaskCard = ({
         <div className="flex items-center gap-3">
           {/* Priority Badge */}
           <div className={cn(
-            "inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border",
+            "inline-flex items-center gap-1 text-xs font-medium",
             priorityStyle.color,
-            priorityStyle.bg,
-            priorityStyle.border
+            priorityStyle.bg
           )}>
             <Flag className="w-3 h-3" />
             {priorityStyle.label}
@@ -166,7 +162,7 @@ const TaskCard = ({
 
           {/* Project Tag */}
           {project && (
-            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+            <span className="text-xs text-muted-foreground nm-badge">
               {project}
             </span>
           )}

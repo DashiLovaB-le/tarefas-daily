@@ -45,22 +45,22 @@ const AppSidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
 
   return (
     <div className={cn(
-      "relative h-screen bg-gradient-to-b from-card to-secondary/50 border-r border-border/50 transition-all duration-300 ease-in-out",
+      "relative h-screen nm-card border-0 transition-all duration-300 ease-in-out m-6 mr-0 rounded-r-none",
       isCollapsed ? "w-16" : "w-72"
     )}>
       {/* Header with Toggle */}
-      <div className="flex items-center justify-between p-4 border-b border-border/50">
+      <div className="flex items-center justify-between p-4 border-b border-sidebar-border/20">
         {!isCollapsed && (
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <CheckSquare className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-inter font-semibold text-foreground">TaskFlow</span>
+            <span className="font-inter font-semibold text-sidebar-foreground">TaskFlow</span>
           </div>
         )}
         <button
           onClick={onToggle}
-          className="p-2 rounded-lg hover:bg-accent transition-colors"
+          className="nm-btn p-2 text-sidebar-foreground"
         >
           {isCollapsed ? <Menu className="w-4 h-4" /> : <X className="w-4 h-4" />}
         </button>
@@ -69,7 +69,7 @@ const AppSidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
       {/* Quick Add Button */}
       <div className="p-4">
         <button className={cn(
-          "w-full bg-primary text-primary-foreground rounded-lg font-medium transition-all duration-200 hover:bg-primary/90 hover:scale-105",
+          "w-full gradient-button font-medium",
           isCollapsed ? "p-3" : "p-3 px-4"
         )}>
           <div className="flex items-center justify-center gap-2">
@@ -106,7 +106,7 @@ const AppSidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
         {/* Projects Section */}
         {!isCollapsed && (
           <div className="pt-6">
-            <h3 className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            <h3 className="px-4 text-xs font-semibold text-sidebar-foreground/60 uppercase tracking-wider mb-2">
               Projetos
             </h3>
             <div className="space-y-1">
@@ -125,7 +125,7 @@ const AppSidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
                     <span className="text-sm font-medium flex-1 text-left">
                       {item.label}
                     </span>
-                    <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
+                    <span className="text-xs nm-badge text-sidebar-accent-foreground px-2 py-1">
                       {item.count}
                     </span>
                   </button>
@@ -137,7 +137,7 @@ const AppSidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
       </div>
 
       {/* Bottom Section */}
-      <div className="absolute bottom-0 left-0 right-0 p-2 border-t border-border/50">
+      <div className="absolute bottom-0 left-0 right-0 p-2 border-t border-sidebar-border/20">
         <button
           onClick={() => handleNavigation("/settings")}
           className={cn(

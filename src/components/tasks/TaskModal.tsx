@@ -99,7 +99,7 @@ const TaskModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="nm-card max-w-2xl max-h-[90vh] overflow-y-auto border-0">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
             {mode === "create" ? "Nova Tarefa" : "Editar Tarefa"}
@@ -165,7 +165,7 @@ const TaskModal = ({
                   </SelectItem>
                   <SelectItem value="medium">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                      <div className="w-2 h-2 rounded-full bg-orange-500"></div>
                       Média
                     </div>
                   </SelectItem>
