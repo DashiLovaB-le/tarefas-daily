@@ -11,6 +11,8 @@ import Completed from "./pages/Completed";
 import Projects from "./pages/Projects";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
+import { DatabaseTest } from "./components/DatabaseTest";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +23,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/login" element={<Login />} />
           <Route path="/" element={<Index />} />
           <Route path="/today" element={<Today />} />
           <Route path="/upcoming" element={<Upcoming />} />
@@ -29,6 +32,7 @@ const App = () => (
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:projectId" element={<Projects />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/test-database" element={<DatabaseTest />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
