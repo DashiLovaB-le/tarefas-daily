@@ -1,42 +1,113 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import LoginPage from "./pages/Login";
 import Index from "./pages/Index";
+import Dashboard from "./pages/Dashboard";
 import Today from "./pages/Today";
 import Upcoming from "./pages/Upcoming";
+import Projects from "./pages/Projects";
 import Starred from "./pages/Starred";
 import Completed from "./pages/Completed";
-import Projects from "./pages/Projects";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import Login from "./pages/Login";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Index />} />
-          <Route path="/today" element={<Today />} />
-          <Route path="/upcoming" element={<Upcoming />} />
-          <Route path="/starred" element={<Starred />} />
-          <Route path="/completed" element={<Completed />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/projects/:projectId" element={<Projects />} />
-          <Route path="/settings" element={<Settings />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const AppRoutes = () => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" />} />
+      <Route 
+        path="/" 
+        element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} 
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/today"
+        element={
+          <ProtectedRoute>
+            <Today />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/upcoming"
+        element={
+          <ProtectedRoute>
+            <Upcoming />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/projects"
+        element={
+          <ProtectedRoute>
+            <Projects />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/starred"
+        element={
+          <ProtectedRoute>
+            <Starred />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/completed"
+        element={
+          <ProtectedRoute>
+            <Completed />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;

@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -6,6 +7,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 // Ícone do Google como um componente SVG para manter o estilo e a leveza
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -21,11 +25,27 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 const LoginPage = () => {
-  const handleGoogleLogin = () => {
-    // TODO: Implementar a lógica de autenticação com o Google.
-    // Ex: `supabase.auth.signInWithOAuth({ provider: 'google' })`
+  const { signInWithGoogle, isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated && !loading) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, loading, navigate]);
+
+  const handleGoogleLogin = async () => {
     console.log("Iniciando login com o Google...");
+    await signInWithGoogle();
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-muted/40">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-muted/40 p-4">
