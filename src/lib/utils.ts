@@ -131,3 +131,58 @@ export const touchButton = (size: 'sm' | 'md' | 'lg' = 'md', className?: string)
 
   return cn(sizeClasses[size], "min-w-[44px]", className)
 }
+
+/**
+ * Formatar bytes em formato legível
+ * @param bytes - Número de bytes
+ * @param decimals - Número de casas decimais (padrão: 1)
+ * @returns {string} Tamanho formatado (ex: "1.5 MB")
+ */
+export const formatBytes = (bytes: number, decimals: number = 1): string => {
+  if (bytes === 0) return '0 B';
+  
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(decimals))} ${sizes[i]}`;
+}
+
+/**
+ * Debounce function para otimizar performance
+ * @param func - Função a ser executada
+ * @param wait - Tempo de espera em ms
+ * @returns {Function} Função com debounce aplicado
+ */
+export const debounce = <T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): ((...args: Parameters<T>) => void) => {
+  let timeout: NodeJS.Timeout;
+  
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+}
+
+/**
+ * Throttle function para limitar execuções
+ * @param func - Função a ser executada
+ * @param limit - Limite de tempo em ms
+ * @returns {Function} Função com throttle aplicado
+ */
+export const throttle = <T extends (...args: any[]) => any>(
+  func: T,
+  limit: number
+): ((...args: Parameters<T>) => void) => {
+  let inThrottle: boolean;
+  
+  return (...args: Parameters<T>) => {
+    if (!inThrottle) {
+      func(...args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
+}

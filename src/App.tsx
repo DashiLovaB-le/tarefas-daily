@@ -1,10 +1,16 @@
 
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { UpdateNotification } from "@/components/UpdateNotification";
+import { ShareNotification } from "@/components/ShareNotification";
+import { versionChecker } from "@/lib/version-check";
+import { analytics } from "@/lib/analytics";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import LoginPage from "./pages/Login";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -98,10 +104,36 @@ const AppRoutes = () => {
 };
 
 function App() {
+  const { trackEvent } = useAnalytics();
+
+  useEffect(() => {
+    // Iniciar verificação de versão
+    console.log('App: Iniciando sistema de versionamento');
+    versionChecker.start();
+    
+    // Inicializar analytics
+    console.log('App: Sistema de analytics inicializado');
+    trackEvent('App', 'initialized');
+    
+    // Detectar se é PWA instalado
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    if (isStandalone) {
+      trackEvent('PWA', 'launched_as_app');
+    }
+    
+    // Cleanup quando o componente for desmontado
+    return () => {
+      versionChecker.stop();
+      analytics.sendAnalytics();
+    };
+  }, [trackEvent]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
+        <UpdateNotification />
+        <ShareNotification />
         <BrowserRouter>
           <AppRoutes />
         </BrowserRouter>
