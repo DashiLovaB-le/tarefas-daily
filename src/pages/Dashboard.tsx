@@ -72,13 +72,13 @@ const Dashboard = () => {
   // Task handlers
   const handleToggleComplete = (id: string) => {
     setTasks(prev => prev.map(task => 
-      task.id === id ? { ...task, isCompleted: !task.isCompleted } : task
+      task.id === id ? { ...task, ...{ isCompleted: !task.isCompleted } } : task
     ))
   }
 
   const handleToggleStar = (id: string) => {
     setTasks(prev => prev.map(task =>
-      task.id === id ? { ...task, isStarred: !task.isStarred } : task
+      task.id === id ? { ...task, ...{ isStarred: !task.isStarred } } : task
     ))
   }
 
