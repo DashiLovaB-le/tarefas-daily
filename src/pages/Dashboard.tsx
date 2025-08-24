@@ -24,6 +24,7 @@ import AppLayout from "@/components/layout/AppLayout"
 import AppHeader from "@/components/layout/AppHeader"
 import { useMobile } from "@/hooks/use-mobile"
 import { supabase } from "@/integrations/supabase/client"
+import { toast } from "sonner"
 
 interface Task {
   id: string;
