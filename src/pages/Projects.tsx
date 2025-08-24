@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import TaskCardAdapter from "@/components/TaskCardAdapter"
 import TaskModalAdapter from "@/components/TaskModalAdapter"
+import AppLayout from "@/components/layout/AppLayout"
+import AppHeader from "@/components/layout/AppHeader"
 
 interface Task {
   id: string
@@ -20,7 +22,7 @@ interface Task {
 interface Project {
   id: string
   name: string
-  icon: any
+  icon: React.ComponentType<any>
   color: string
   taskCount: number
 }
@@ -93,27 +95,21 @@ const Projects = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-6xl mx-auto p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <Folder className="w-8 h-8 text-primary" />
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Projetos</h1>
-              <p className="text-muted-foreground">
-                Organize suas tarefas por projetos e categorias
-              </p>
-            </div>
-          </div>
-          <Button 
-            onClick={() => setIsModalOpen(true)}
-            className="gradient-button"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Tarefa
-          </Button>
-        </div>
+    <AppLayout>
+      <AppHeader 
+        title="Projetos" 
+        subtitle="Organize suas tarefas por projetos e categorias"
+      >
+        <Button 
+          onClick={() => setIsModalOpen(true)}
+          className="gradient-button"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Nova Tarefa
+        </Button>
+      </AppHeader>
+
+      <main className="flex-1 overflow-auto p-6">
 
         {/* Projects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -218,8 +214,8 @@ const Projects = () => {
           onClose={() => setIsModalOpen(false)}
           onSubmit={handleCreateTask}
         />
-      </div>
-    </div>
+      </main>
+    </AppLayout>
   )
 }
 

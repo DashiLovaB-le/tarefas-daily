@@ -139,10 +139,21 @@ const AppSidebar = ({
 interface SidebarContentProps {
   isCollapsed: boolean
   onToggle: () => void
-  mainItems: any[]
-  projectItems: any[]
+  mainItems: Array<{
+    id: string
+    label: string
+    icon: React.ComponentType<any>
+    path: string
+  }>
+  projectItems: Array<{
+    id: string
+    label: string
+    icon: React.ComponentType<any>
+    count: number
+    path: string
+  }>
   handleNavigation: (path: string) => void
-  location: any
+  location: { pathname: string }
   isMobile: boolean
 }
 

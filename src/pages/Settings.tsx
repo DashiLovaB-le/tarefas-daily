@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import AppLayout from "@/components/layout/AppLayout"
+import AppHeader from "@/components/layout/AppHeader"
 
 interface UserSettings {
   name: string
@@ -63,18 +65,14 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-4xl mx-auto p-6">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <SettingsIcon className="w-8 h-8 text-primary" />
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Configurações</h1>
-            <p className="text-muted-foreground">
-              Gerencie suas preferências e dados da conta
-            </p>
-          </div>
-        </div>
+    <AppLayout>
+      <AppHeader 
+        title="Configurações" 
+        subtitle="Gerencie suas preferências e dados da conta"
+      />
+
+      <main className="flex-1 overflow-auto p-6">
+        <div className="max-w-4xl mx-auto">
 
         <div className="space-y-8">
           {/* Profile Section */}
@@ -294,8 +292,9 @@ const Settings = () => {
             </div>
           </Card>
         </div>
-      </div>
-    </div>
+        </div>
+      </main>
+    </AppLayout>
   )
 }
 

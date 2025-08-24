@@ -1,8 +1,10 @@
 import { useState } from "react"
-import { CheckSquare, Calendar, RotateCcw } from "lucide-react"
+import { CheckSquare, Calendar, RotateCcw, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import TaskCardAdapter from "@/components/TaskCardAdapter"
+import AppLayout from "@/components/layout/AppLayout"
+import AppHeader from "@/components/layout/AppHeader"
 
 interface Task {
   id: string
@@ -91,20 +93,13 @@ const Completed = () => {
   const taskGroups = groupTasksByDate(completedTasks)
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-6xl mx-auto p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <CheckSquare className="w-8 h-8 text-success" />
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Tarefas Concluídas</h1>
-              <p className="text-muted-foreground">
-                Histórico de todas as tarefas finalizadas
-              </p>
-            </div>
-          </div>
-        </div>
+    <AppLayout>
+      <AppHeader 
+        title="Tarefas Concluídas" 
+        subtitle="Histórico de todas as tarefas finalizadas"
+      />
+
+      <main className="flex-1 overflow-auto p-6">
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -203,8 +198,8 @@ const Completed = () => {
             ))
           )}
         </div>
-      </div>
-    </div>
+      </main>
+    </AppLayout>
   )
 }
 

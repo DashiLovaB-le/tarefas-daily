@@ -28,7 +28,7 @@ const TaskModalAdapter = ({
   mode = "create" 
 }: TaskModalAdapterProps) => {
   
-  const handleSave = (taskData: any) => {
+  const handleSave = (taskData: Record<string, any>) => {
     const task: Omit<Task, 'id'> = {
       title: taskData.title,
       description: taskData.description || "",

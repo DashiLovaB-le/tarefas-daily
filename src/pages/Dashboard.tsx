@@ -3,14 +3,10 @@ import {
   CheckSquare, 
   Clock, 
   Star, 
-  TrendingUp,
   Plus,
   Filter,
   Search
 } from "lucide-react"
-import AppSidebar from "@/components/layout/AppSidebar"
-import { useMobile } from "@/hooks/use-mobile"
-import { HamburgerButton } from "@/components/ui/hamburger-button"
 import { cn } from "@/lib/utils"
 import TaskCard from "@/components/tasks/TaskCard"
 import TaskModal from "@/components/tasks/TaskModal"
@@ -24,6 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import AppLayout from "@/components/layout/AppLayout"
+import AppHeader from "@/components/layout/AppHeader"
+import { useMobile } from "@/hooks/use-mobile"
 
 // Mock data - será substituído por dados do Supabase
 const mockTasks = [
@@ -63,8 +62,6 @@ const mockTasks = [
 ]
 
 const Dashboard = () => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [tasks, setTasks] = useState(mockTasks)
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
@@ -94,7 +91,7 @@ const Dashboard = () => {
     setTasks(prev => prev.filter(task => task.id !== id))
   }
 
-  const handleCreateTask = (taskData: any) => {
+  const handleCreateTask = (taskData: Record<string, any>) => {
     const newTask = {
       id: Date.now().toString(),
       ...taskData,
@@ -127,64 +124,23 @@ const Dashboard = () => {
   }).length
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      {/* Sidebar - hidden on mobile, overlay when open */}
-      {!isMobile && (
-        <AppSidebar 
-          isCollapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-          isMobileMenuOpen={isMobileMenuOpen}
-          onMobileMenuClose={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-      
-      {/* Mobile Sidebar Overlay */}
-      {isMobile && (
-        <AppSidebar 
-          isCollapsed={false}
-          onToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          isMobileMenuOpen={isMobileMenuOpen}
-          onMobileMenuClose={() => setIsMobileMenuOpen(false)}
-        />
-      )}
+    <AppLayout>
+      <AppHeader 
+        title="Dashboard" 
+        subtitle={`Bem-vindo de volta! Você tem ${pendingTasks} tarefas pendentes.`}
+      >
+        <Button 
+          onClick={() => setIsTaskModalOpen(true)}
+          className="gradient-button"
+          size={isMobile ? "sm" : "default"}
+        >
+          <Plus className="w-4 h-4 sm:mr-2" />
+          <span className="hidden sm:inline">Nova Tarefa</span>
+        </Button>
+      </AppHeader>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header className="nm-card px-6 py-4 border-0 mx-6 mt-6 mb-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {/* Hamburger button - visible only on mobile */}
-              {isMobile && (
-                <HamburgerButton
-                  isOpen={isMobileMenuOpen}
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  size="md"
-                  className="md:hidden"
-                />
-              )}
-              
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-foreground">Dashboard</h1>
-                <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-                  Bem-vindo de volta! Você tem {pendingTasks} tarefas pendentes.
-                </p>
-              </div>
-            </div>
-            
-            <Button 
-              onClick={() => setIsTaskModalOpen(true)}
-              className="gradient-button"
-              size={isMobile ? "sm" : "default"}
-            >
-              <Plus className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Nova Tarefa</span>
-            </Button>
-          </div>
-        </header>
-
-        {/* Content */}
-        <main className="flex-1 overflow-auto p-6">
+      {/* Content */}
+      <main className="flex-1 overflow-auto p-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <StatsCard
@@ -313,8 +269,7 @@ const Dashboard = () => {
               </div>
             )}
           </div>
-        </main>
-      </div>
+      </main>
 
       {/* Task Modal */}
       <TaskModal
@@ -322,7 +277,7 @@ const Dashboard = () => {
         onClose={() => setIsTaskModalOpen(false)}
         onSave={handleCreateTask}
       />
-    </div>
+    </AppLayout>
   )
 }
 

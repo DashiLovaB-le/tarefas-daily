@@ -1,9 +1,11 @@
 import { useState } from "react"
-import { Calendar, Filter, Plus } from "lucide-react"
+import { Calendar, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import TaskCardAdapter from "@/components/TaskCardAdapter"
 import TaskModalAdapter from "@/components/TaskModalAdapter"
+import AppLayout from "@/components/layout/AppLayout"
+import AppHeader from "@/components/layout/AppHeader"
 
 interface Task {
   id: string
@@ -60,32 +62,26 @@ const Today = () => {
   const todayTasks = tasks.filter(task => task.dueDate === new Date().toISOString().split('T')[0])
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-6xl mx-auto p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <Calendar className="w-8 h-8 text-primary" />
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Hoje</h1>
-              <p className="text-muted-foreground">
-                {new Date().toLocaleDateString('pt-BR', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
-              </p>
-            </div>
-          </div>
-          <Button 
-            onClick={() => setIsModalOpen(true)}
-            className="gradient-button"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Tarefa
-          </Button>
-        </div>
+    <AppLayout>
+      <AppHeader 
+        title="Hoje" 
+        subtitle={new Date().toLocaleDateString('pt-BR', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        })}
+      >
+        <Button 
+          onClick={() => setIsModalOpen(true)}
+          className="gradient-button"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Nova Tarefa
+        </Button>
+      </AppHeader>
+
+      <main className="flex-1 overflow-auto p-6">
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -155,8 +151,8 @@ const Today = () => {
           onClose={() => setIsModalOpen(false)}
           onSubmit={handleCreateTask}
         />
-      </div>
-    </div>
+      </main>
+    </AppLayout>
   )
 }
 
