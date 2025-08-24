@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { 
   CheckSquare, 
   Clock, 
@@ -23,63 +23,131 @@ import {
 import AppLayout from "@/components/layout/AppLayout"
 import AppHeader from "@/components/layout/AppHeader"
 import { useMobile } from "@/hooks/use-mobile"
+import { supabase } from "@/integrations/supabase/client"
+import { toast } from "sonner"
 
-// Mock data - será substituído por dados do Supabase
-const mockTasks = [
-  {
-    id: "1",
-    title: "Finalizar apresentação do projeto",
-    description: "Preparar slides e ensaiar apresentação para o cliente",
-    priority: "high" as const,
-    dueDate: "2024-01-20",
-    isCompleted: false,
-    isStarred: true,
-    assignee: "João Silva",
-    project: "Trabalho"
-  },
-  {
-    id: "2", 
-    title: "Comprar ingredientes para jantar",
-    description: "Lista: tomate, cebola, alho, carne",
-    priority: "medium" as const,
-    dueDate: "2024-01-18",
-    isCompleted: false,
-    isStarred: false,
-    assignee: "",
-    project: "Pessoal"
-  },
-  {
-    id: "3",
-    title: "Revisar código do frontend",
-    description: "Fazer code review do PR #123",
-    priority: "low" as const,
-    dueDate: "2024-01-22",
-    isCompleted: true,
-    isStarred: false,
-    assignee: "Maria Santos", 
-    project: "Trabalho"
-  }
-]
+interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  priority: "high" | "medium" | "low";
+  dueDate: string;
+  isCompleted: boolean;
+  isStarred: boolean;
+  assignee?: string;
+  project?: string;
+}
 
 const Dashboard = () => {
-  const [tasks, setTasks] = useState(mockTasks)
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [loading, setLoading] = useState(true)
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterPriority, setFilterPriority] = useState("all")
   const [filterStatus, setFilterStatus] = useState("all")
   const isMobile = useMobile()
 
-  // Task handlers
-  const handleToggleComplete = (id: string) => {
-    setTasks(prev => prev.map(task => 
-      task.id === id ? { ...task, ...{ isCompleted: !task.isCompleted } } : task
-    ))
+  useEffect(() => {
+    fetchTasks()
+  }, [])
+
+  const fetchTasks = async () => {
+    try {
+      setLoading(true)
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        console.error('Usuário não autenticado')
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      // Mapear dados do Supabase para o formato esperado
+      const mappedTasks = (data || []).map(task => ({
+        id: task.id,
+        title: task.title,
+        description: task.description || '',
+        priority: (task.priority || 'medium') as "high" | "medium" | "low",
+        dueDate: task.due_date || '',
+        isCompleted: task.status === 'completed',
+        isStarred: task.is_starred || false,
+        assignee: '', // Campo não existe na tabela tasks
+        project: task.project_id || ''
+      }))
+
+      setTasks(mappedTasks)
+    } catch (error) {
+      console.error('Erro ao buscar tarefas:', error)
+      toast.error('Erro ao carregar tarefas')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleToggleStar = (id: string) => {
-    setTasks(prev => prev.map(task =>
-      task.id === id ? { ...task, ...{ isStarred: !task.isStarred } } : task
-    ))
+  // Task handlers
+  const handleToggleComplete = async (id: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const task = tasks.find(t => t.id === id)
+      if (!task) return
+
+      const newStatus = task.isCompleted ? 'pending' : 'completed'
+      const completedAt = task.isCompleted ? null : new Date().toISOString()
+
+      const { error } = await supabase
+        .from('tasks')
+        .update({ 
+          status: newStatus,
+          completed_at: completedAt,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .eq('user_id', user.id)
+
+      if (error) throw error
+      
+      setTasks(prev => prev.map(task => 
+        task.id === id ? { ...task, isCompleted: !task.isCompleted } : task
+      ))
+    } catch (error) {
+      console.error('Erro ao atualizar tarefa:', error)
+    }
+  }
+
+  const handleToggleStar = async (id: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const task = tasks.find(t => t.id === id)
+      if (!task) return
+
+      const { error } = await supabase
+        .from('tasks')
+        .update({ 
+          is_starred: !task.isStarred,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .eq('user_id', user.id)
+
+      if (error) throw error
+      
+      setTasks(prev => prev.map(task =>
+        task.id === id ? { ...task, isStarred: !task.isStarred } : task
+      ))
+    } catch (error) {
+      console.error('Erro ao atualizar tarefa:', error)
+    }
   }
 
   const handleEditTask = (id: string) => {
@@ -87,18 +155,82 @@ const Dashboard = () => {
     // TODO: Implementar edição
   }
 
-  const handleDeleteTask = (id: string) => {
-    setTasks(prev => prev.filter(task => task.id !== id))
+  const handleDeleteTask = async (id: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id)
+
+      if (error) throw error
+      
+      setTasks(prev => prev.filter(task => task.id !== id))
+    } catch (error) {
+      console.error('Erro ao excluir tarefa:', error)
+    }
   }
 
-  const handleCreateTask = (taskData: Record<string, any>) => {
-    const newTask = {
-      id: Date.now().toString(),
-      ...taskData,
-      isCompleted: false,
-      isStarred: false
+  const handleCreateTask = async (taskData: Record<string, any>) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        toast.error('Usuário não autenticado')
+        return
+      }
+
+      console.log('Criando tarefa com dados:', taskData)
+
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert([
+          {
+            title: taskData.title,
+            description: taskData.description || '',
+            priority: taskData.priority || 'medium',
+            due_date: taskData.dueDate,
+            status: 'pending',
+            is_starred: false,
+            project_id: null, // Por enquanto, não associar a projetos
+            user_id: user.id,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ])
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Erro ao inserir tarefa:', error)
+        toast.error('Erro ao criar tarefa: ' + error.message)
+        return
+      }
+
+      console.log('Tarefa criada com sucesso:', data)
+      
+      // Mapear dados do Supabase para o formato esperado
+      const newTask = {
+        id: data.id,
+        title: data.title,
+        description: data.description || '',
+        priority: (data.priority || 'medium') as "high" | "medium" | "low",
+        dueDate: data.due_date || '',
+        isCompleted: data.status === 'completed',
+        isStarred: data.is_starred || false,
+        assignee: '',
+        project: data.project_id || ''
+      }
+
+      setTasks(prev => [newTask, ...prev])
+      toast.success('Tarefa criada com sucesso!')
+      setIsTaskModalOpen(false)
+    } catch (error) {
+      console.error('Erro ao criar tarefa:', error)
+      toast.error('Erro inesperado ao criar tarefa')
     }
-    setTasks(prev => [newTask, ...prev])
   }
 
   // Filter tasks
@@ -234,7 +366,12 @@ const Dashboard = () => {
               Tarefas ({filteredTasks.length})
             </h2>
             
-            {filteredTasks.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Carregando tarefas...</p>
+              </div>
+            ) : filteredTasks.length === 0 ? (
               <div className="text-center py-12">
                 <CheckSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-foreground mb-2">
