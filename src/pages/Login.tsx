@@ -1,8 +1,5 @@
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -10,14 +7,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 
-// Ícone do Google como um componente SVG
+// Ícone do Google como um componente SVG para manter o estilo e a leveza
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
     role="img"
@@ -31,12 +25,8 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 const LoginPage = () => {
-  const { signInWithGoogle, signInWithEmail, signUpWithEmail, isAuthenticated, loading } = useAuth();
+  const { signInWithGoogle, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && !loading) {
@@ -47,58 +37,6 @@ const LoginPage = () => {
   const handleGoogleLogin = async () => {
     console.log("Iniciando login com o Google...");
     await signInWithGoogle();
-  };
-
-  const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) {
-      toast.error("Por favor, preencha todos os campos");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const { error } = await signInWithEmail(email, password);
-      if (error) {
-        toast.error(error.message || "Erro ao fazer login");
-      }
-    } catch (error) {
-      toast.error("Erro inesperado ao fazer login");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleEmailSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password || !confirmPassword) {
-      toast.error("Por favor, preencha todos os campos");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      toast.error("As senhas não coincidem");
-      return;
-    }
-
-    if (password.length < 6) {
-      toast.error("A senha deve ter pelo menos 6 caracteres");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const { error } = await signUpWithEmail(email, password);
-      if (error) {
-        toast.error(error.message || "Erro ao criar conta");
-      } else {
-        toast.success("Conta criada com sucesso! Verifique seu email para confirmar a conta.");
-      }
-    } catch (error) {
-      toast.error("Erro inesperado ao criar conta");
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   if (loading) {
@@ -121,159 +59,24 @@ const LoginPage = () => {
             />
           </div>
           <h1 className="text-3xl font-bold text-foreground">DashiTask</h1>
+          <CardTitle className="text-2xl font-semibold tracking-tight pt-2">
+            Acesse sua conta
+          </CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Utilize sua conta do Google para continuar.
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Entrar</TabsTrigger>
-              <TabsTrigger value="signup">Criar Conta</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="login">
-              <div className="space-y-4">
-                <CardTitle className="text-xl font-semibold tracking-tight text-center">
-                  Acesse sua conta
-                </CardTitle>
-                <CardDescription className="text-muted-foreground text-center">
-                  Entre com seu email e senha ou use o Google
-                </CardDescription>
-                
-                <form onSubmit={handleEmailLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Senha</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Sua senha"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                  
-                  <Button 
-                    type="submit" 
-                    className="w-full gradient-button" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Entrando..." : "Entrar"}
-                  </Button>
-                </form>
-                
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <Separator className="w-full" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
-                      ou continue com
-                    </span>
-                  </div>
-                </div>
-                
-                <Button
-                  variant="outline"
-                  className="w-full h-12 text-base font-medium border-2 hover:border-primary transition-all duration-300"
-                  onClick={handleGoogleLogin}
-                  disabled={isLoading}
-                >
-                  <GoogleIcon className="w-5 h-5 mr-3" />
-                  Entrar com o Google
-                </Button>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="signup">
-              <div className="space-y-4">
-                <CardTitle className="text-xl font-semibold tracking-tight text-center">
-                  Criar nova conta
-                </CardTitle>
-                <CardDescription className="text-muted-foreground text-center">
-                  Crie sua conta com email e senha
-                </CardDescription>
-                
-                <form onSubmit={handleEmailSignup} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Senha</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="Mínimo 6 caracteres"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={6}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirmar Senha</Label>
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      placeholder="Confirme sua senha"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                  
-                  <Button 
-                    type="submit" 
-                    className="w-full gradient-button" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Criando conta..." : "Criar Conta"}
-                  </Button>
-                </form>
-                
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <Separator className="w-full" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
-                      ou continue com
-                    </span>
-                  </div>
-                </div>
-                
-                <Button
-                  variant="outline"
-                  className="w-full h-12 text-base font-medium border-2 hover:border-primary transition-all duration-300"
-                  onClick={handleGoogleLogin}
-                  disabled={isLoading}
-                >
-                  <GoogleIcon className="w-5 h-5 mr-3" />
-                  Criar conta com Google
-                </Button>
-              </div>
-            </TabsContent>
-          </Tabs>
+          <div className="py-4">
+            <Button
+              variant="outline"
+              className="w-full h-12 text-base font-medium border-2 hover:border-primary transition-all duration-300"
+              onClick={handleGoogleLogin}
+            >
+              <GoogleIcon className="w-5 h-5 mr-3" />
+              Entrar com o Google
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -4,8 +4,8 @@ import './index.css'
 
 createRoot(document.getElementById("root")!).render(<App />);
 
-// Registro do service worker (temporariamente desabilitado para debug)
-if ('serviceWorker' in navigator && false) { // Desabilitado temporariamente
+// Registro do service worker
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
       .then((registration) => {

@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { CheckSquare, Calendar, RotateCcw, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import TaskCardAdapter from "@/components/TaskCardAdapter"
 import AppLayout from "@/components/layout/AppLayout"
 import AppHeader from "@/components/layout/AppHeader"
-import { supabase } from "@/integrations/supabase/client"
 
 interface Task {
   id: string
@@ -19,132 +18,53 @@ interface Task {
 }
 
 const Completed = () => {
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetchCompletedTasks()
-  }, [])
-
-  const fetchCompletedTasks = async () => {
-    try {
-      setLoading(true)
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        console.error('Usuário não autenticado')
-        return
-      }
-
-      const { data, error } = await supabase
-        .from('tasks')
-        .select(`
-          *,
-          task_tags (
-            tags (
-              name
-            )
-          )
-        `)
-        .eq('user_id', user.id)
-        .eq('status', 'completed')
-        .order('completed_at', { ascending: false })
-
-      if (error) throw error
-
-      // Mapear dados do Supabase para o formato esperado
-      const mappedTasks = (data || []).map(task => ({
-        id: task.id,
-        title: task.title,
-        description: task.description || '',
-        priority: (task.priority || 'medium') as 'high' | 'medium' | 'low',
-        status: (task.status || 'pending') as 'pending' | 'in-progress' | 'completed',
-        dueDate: task.due_date || '',
-        tags: task.task_tags?.map((tt: any) => tt.tags?.name).filter(Boolean) || [],
-        completedAt: task.completed_at
-      }))
-
-      setTasks(mappedTasks)
-    } catch (error) {
-      console.error('Erro ao buscar tarefas concluídas:', error)
-    } finally {
-      setLoading(false)
+  const [tasks, setTasks] = useState<Task[]>([
+    {
+      id: "1",
+      title: "Relatório mensal finalizado",
+      description: "Análise completa dos resultados de vendas",
+      priority: "high",
+      status: "completed",
+      dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      tags: ["trabalho", "relatório"],
+      completedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: "2",
+      title: "Exercícios da semana",
+      description: "Academia segunda, quarta e sexta",
+      priority: "medium",
+      status: "completed",
+      dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      tags: ["saúde", "exercício"],
+      completedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: "3",
+      title: "Leitura do livro",
+      description: "Terminar capítulos 5-8",
+      priority: "low",
+      status: "completed",
+      dueDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      tags: ["pessoal", "leitura"],
+      completedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
     }
+  ])
+
+  const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId ? { ...task, ...updates } : task
+    ))
   }
 
-  const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const completedAt = updates.status === 'completed' ? new Date().toISOString() : null
-
-      const { error } = await supabase
-        .from('tasks')
-        .update({
-          title: updates.title,
-          description: updates.description,
-          priority: updates.priority,
-          due_date: updates.dueDate,
-          status: updates.status,
-          completed_at: completedAt,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', taskId)
-        .eq('user_id', user.id)
-
-      if (error) throw error
-      
-      setTasks(prev => prev.map(task => 
-        task.id === taskId ? { ...task, ...updates } : task
-      ))
-    } catch (error) {
-      console.error('Erro ao atualizar tarefa:', error)
-    }
+  const handleTaskDelete = (taskId: string) => {
+    setTasks(prev => prev.filter(task => task.id !== taskId))
   }
 
-  const handleTaskDelete = async (taskId: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', taskId)
-        .eq('user_id', user.id)
-
-      if (error) throw error
-      
-      setTasks(prev => prev.filter(task => task.id !== taskId))
-    } catch (error) {
-      console.error('Erro ao excluir tarefa:', error)
-    }
-  }
-
-  const handleRestoreTask = async (taskId: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { error } = await supabase
-        .from('tasks')
-        .update({
-          status: 'pending',
-          completed_at: null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', taskId)
-        .eq('user_id', user.id)
-
-      if (error) throw error
-      
-      setTasks(prev => prev.map(task => 
-        task.id === taskId ? { ...task, status: 'pending' as const, completedAt: undefined } : task
-      ))
-    } catch (error) {
-      console.error('Erro ao restaurar tarefa:', error)
-    }
+  const handleRestoreTask = (taskId: string) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId ? { ...task, status: 'pending', completedAt: undefined } : task
+    ))
   }
 
   const completedTasks = tasks.filter(task => task.status === 'completed')

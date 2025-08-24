@@ -130,41 +130,23 @@ const staleWhileRevalidate = async (request) => {
   console.log('Service Worker: Stale-while-revalidate para:', request.url);
   const cachedResponse = await caches.match(request);
   
-  // Busca da rede em paralelo para atualizar o cache
-  const fetchPromise = fetch(request).then(async (networkResponse) => {
+  // Busca da rede em paralelo
+  const fetchPromise = fetch(request).then((networkResponse) => {
     if (networkResponse && networkResponse.status === 200) {
-      try {
-        const cache = await caches.open(CACHE_NAME);
-        // Clona a resposta antes de usar
-        await cache.put(request, networkResponse.clone());
-      } catch (error) {
-        console.warn('Service Worker: Erro ao atualizar cache:', error);
-      }
+      const cache = caches.open(CACHE_NAME);
+      cache.then(c => c.put(request, networkResponse.clone()));
     }
     return networkResponse;
-  }).catch((error) => {
-    console.warn('Service Worker: Erro na rede:', error);
-    return null;
-  });
+  }).catch(() => null);
   
-  // Se tem cache, retorna imediatamente e atualiza em background
-  if (cachedResponse) {
-    // Atualiza em background sem bloquear
-    fetchPromise.catch(() => {}); // Ignora erros silenciosamente
-    return cachedResponse;
-  }
-  
-  // Se não tem cache, espera a rede
-  return fetchPromise || new Response('', { status: 404 });
+  // Retorna do cache imediatamente se disponível, senão espera a rede
+  return cachedResponse || fetchPromise;
 };
 
 // Interceptação de requisições com estratégias inteligentes
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
-  
-  // Monitorar métricas de cache
-  monitorCacheMetrics(request);
   
   // Ignora requisições de outros domínios (exceto APIs conhecidas)
   if (url.origin !== self.location.origin && !url.pathname.startsWith('/api/')) {
@@ -479,12 +461,12 @@ function isOnline() {
 }
 
 // Listener para mudanças de conectividade
-self.addEventListener('online', () => {
+self.addEventListener('online', (event) => {
   console.log('Service Worker: Conectividade restaurada');
   // Sincronizar dados pendentes se necessário
 });
 
-self.addEventListener('offline', () => {
+self.addEventListener('offline', (event) => {
   console.log('Service Worker: Modo offline detectado');
 });
 
@@ -586,10 +568,12 @@ self.addEventListener('activate', (event) => {
   logSWEvent('activate', { cacheName: CACHE_NAME });
 });
 
-// Monitorar métricas de cache (separado do handler principal de fetch)
-function monitorCacheMetrics(request) {
+self.addEventListener('fetch', (event) => {
+  // Atualizar métricas de cache
+  const url = new URL(event.request.url);
+  
   // Verificar se a requisição será servida do cache
-  caches.match(request).then(cachedResponse => {
+  caches.match(event.request).then(cachedResponse => {
     if (cachedResponse) {
       updateCacheStats('hits');
     } else {
@@ -599,13 +583,13 @@ function monitorCacheMetrics(request) {
   });
   
   // Log apenas requisições importantes para evitar spam
-  if (request.url.includes('/api/') || request.url.includes('version.json')) {
+  if (event.request.url.includes('/api/') || event.request.url.includes('version.json')) {
     logSWEvent('fetch', { 
-      url: request.url, 
-      method: request.method 
+      url: event.request.url, 
+      method: event.request.method 
     });
   }
-}
+});
 
 // Monitorar erros
 self.addEventListener('error', (event) => {

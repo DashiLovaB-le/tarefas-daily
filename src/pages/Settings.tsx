@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Settings as SettingsIcon, User, Bell, Shield, Palette, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -9,7 +9,6 @@ import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import AppLayout from "@/components/layout/AppLayout"
 import AppHeader from "@/components/layout/AppHeader"
-import { supabase } from "@/integrations/supabase/client"
 
 interface UserSettings {
   name: string
@@ -27,8 +26,8 @@ interface UserSettings {
 
 const Settings = () => {
   const [settings, setSettings] = useState<UserSettings>({
-    name: "",
-    email: "",
+    name: "João Silva",
+    email: "joao.silva@email.com",
     avatar: "",
     notifications: {
       email: true,
@@ -41,86 +40,13 @@ const Settings = () => {
   })
 
   const [isLoading, setIsLoading] = useState(false)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetchUserSettings()
-  }, [])
-
-  const fetchUserSettings = async () => {
-    try {
-      setLoading(true)
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        console.error('Usuário não autenticado')
-        return
-      }
-
-      // Buscar dados do usuário na tabela attusuarios
-      const { data: userData, error: userError } = await supabase
-        .from('attusuarios')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-      if (userError) throw userError
-
-      // Mapear dados do usuário
-      const userPreferences = userData.preferencias as any || {}
-      
-      setSettings({
-        name: userData.nome || '',
-        email: userData.email || '',
-        avatar: '', // Não há campo de avatar na tabela atual
-        notifications: {
-          email: userPreferences.notifications?.email ?? true,
-          push: userPreferences.notifications?.push ?? false,
-          daily: userPreferences.notifications?.daily ?? true,
-          weekly: userPreferences.notifications?.weekly ?? true
-        },
-        theme: userPreferences.theme || 'light',
-        language: userPreferences.language || 'pt-BR'
-      })
-    } catch (error) {
-      console.error('Erro ao buscar configurações do usuário:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleSaveProfile = async () => {
-    try {
-      setIsLoading(true)
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        console.error('Usuário não autenticado')
-        return
-      }
-
-      const { error } = await supabase
-        .from('attusuarios')
-        .update({
-          nome: settings.name,
-          email: settings.email,
-          preferencias: {
-            notifications: settings.notifications,
-            theme: settings.theme,
-            language: settings.language
-          },
-          data_atualizacao: new Date().toISOString()
-        })
-        .eq('id', user.id)
-
-      if (error) throw error
-
-      console.log('Perfil salvo com sucesso!')
-    } catch (error) {
-      console.error('Erro ao salvar perfil:', error)
-    } finally {
-      setIsLoading(false)
-    }
+    setIsLoading(true)
+    // Simula salvamento
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    setIsLoading(false)
+    // TODO: Implementar salvamento real via Supabase
   }
 
   const handleExportData = () => {
@@ -128,38 +54,14 @@ const Settings = () => {
     console.log("Exportando dados do usuário...")
   }
 
-  const updateNotification = async (key: keyof UserSettings['notifications'], value: boolean) => {
-    const newSettings = {
-      ...settings,
+  const updateNotification = (key: keyof UserSettings['notifications'], value: boolean) => {
+    setSettings(prev => ({
+      ...prev,
       notifications: {
-        ...settings.notifications,
+        ...prev.notifications,
         [key]: value
       }
-    }
-    
-    setSettings(newSettings)
-    
-    // Salvar automaticamente as preferências de notificação
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { error } = await supabase
-        .from('attusuarios')
-        .update({
-          preferencias: {
-            notifications: newSettings.notifications,
-            theme: newSettings.theme,
-            language: newSettings.language
-          },
-          data_atualizacao: new Date().toISOString()
-        })
-        .eq('id', user.id)
-
-      if (error) throw error
-    } catch (error) {
-      console.error('Erro ao salvar preferências de notificação:', error)
-    }
+    }))
   }
 
   return (
@@ -172,12 +74,6 @@ const Settings = () => {
       <main className="flex-1 overflow-auto p-6">
         <div className="max-w-4xl mx-auto">
 
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Carregando configurações...</p>
-          </div>
-        ) : (
         <div className="space-y-8">
           {/* Profile Section */}
           <Card className="p-6">
@@ -396,7 +292,6 @@ const Settings = () => {
             </div>
           </Card>
         </div>
-        )}
         </div>
       </main>
     </AppLayout>

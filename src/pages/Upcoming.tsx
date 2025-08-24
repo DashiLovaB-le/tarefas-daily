@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Clock, Plus, Calendar as CalendarIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -6,7 +6,6 @@ import TaskCardAdapter from "@/components/TaskCardAdapter"
 import TaskModalAdapter from "@/components/TaskModalAdapter"
 import AppLayout from "@/components/layout/AppLayout"
 import AppHeader from "@/components/layout/AppHeader"
-import { supabase } from "@/integrations/supabase/client"
 
 interface Task {
   id: string
@@ -20,148 +19,53 @@ interface Task {
 
 const Upcoming = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetchUpcomingTasks()
-  }, [])
-
-  const fetchUpcomingTasks = async () => {
-    try {
-      setLoading(true)
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        console.error('Usuário não autenticado')
-        return
-      }
-
-      const today = new Date().toISOString().split('T')[0]
-      const { data, error } = await supabase
-        .from('tasks')
-        .select(`
-          *,
-          task_tags (
-            tags (
-              name
-            )
-          )
-        `)
-        .eq('user_id', user.id)
-        .gt('due_date', today)
-        .order('due_date', { ascending: true })
-
-      if (error) throw error
-
-      // Mapear dados do Supabase para o formato esperado
-      const mappedTasks = (data || []).map(task => ({
-        id: task.id,
-        title: task.title,
-        description: task.description || '',
-        priority: (task.priority || 'medium') as 'high' | 'medium' | 'low',
-        status: (task.status || 'pending') as 'pending' | 'in-progress' | 'completed',
-        dueDate: task.due_date || '',
-        tags: task.task_tags?.map((tt: any) => tt.tags?.name).filter(Boolean) || []
-      }))
-
-      setTasks(mappedTasks)
-    } catch (error) {
-      console.error('Erro ao buscar tarefas futuras:', error)
-    } finally {
-      setLoading(false)
+  const [tasks, setTasks] = useState<Task[]>([
+    {
+      id: "1",
+      title: "Apresentação para cliente",
+      description: "Preparar slides para reunião da próxima semana",
+      priority: "high",
+      status: "pending",
+      dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      tags: ["trabalho", "cliente"]
+    },
+    {
+      id: "2",
+      title: "Revisão do projeto",
+      description: "Revisar código antes do deploy",
+      priority: "medium",
+      status: "pending",
+      dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      tags: ["desenvolvimento", "revisão"]
+    },
+    {
+      id: "3",
+      title: "Consulta médica",
+      description: "Exame de rotina agendado",
+      priority: "low",
+      status: "pending",
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      tags: ["pessoal", "saúde"]
     }
+  ])
+
+  const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId ? { ...task, ...updates } : task
+    ))
   }
 
-  const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const completedAt = updates.status === 'completed' ? new Date().toISOString() : null
-
-      const { error } = await supabase
-        .from('tasks')
-        .update({
-          title: updates.title,
-          description: updates.description,
-          priority: updates.priority,
-          due_date: updates.dueDate,
-          status: updates.status,
-          completed_at: completedAt,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', taskId)
-        .eq('user_id', user.id)
-
-      if (error) throw error
-      
-      setTasks(prev => prev.map(task => 
-        task.id === taskId ? { ...task, ...updates } : task
-      ))
-    } catch (error) {
-      console.error('Erro ao atualizar tarefa:', error)
-    }
+  const handleTaskDelete = (taskId: string) => {
+    setTasks(prev => prev.filter(task => task.id !== taskId))
   }
 
-  const handleTaskDelete = async (taskId: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', taskId)
-        .eq('user_id', user.id)
-
-      if (error) throw error
-      
-      setTasks(prev => prev.filter(task => task.id !== taskId))
-    } catch (error) {
-      console.error('Erro ao excluir tarefa:', error)
+  const handleCreateTask = (newTask: Omit<Task, 'id'>) => {
+    const task: Task = {
+      ...newTask,
+      id: Date.now().toString()
     }
-  }
-
-  const handleCreateTask = async (newTask: Omit<Task, 'id'>) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data, error } = await supabase
-        .from('tasks')
-        .insert([
-          {
-            title: newTask.title,
-            description: newTask.description,
-            priority: newTask.priority,
-            due_date: newTask.dueDate,
-            status: newTask.status,
-            user_id: user.id,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        ])
-        .select()
-        .single()
-
-      if (error) throw error
-      
-      const task: Task = {
-        id: data.id,
-        title: data.title,
-        description: data.description || '',
-        priority: (data.priority || 'medium') as 'high' | 'medium' | 'low',
-        status: (data.status || 'pending') as 'pending' | 'in-progress' | 'completed',
-        dueDate: data.due_date || '',
-        tags: []
-      }
-      
-      setTasks(prev => [task, ...prev])
-      setIsModalOpen(false)
-    } catch (error) {
-      console.error('Erro ao criar tarefa:', error)
-    }
+    setTasks(prev => [task, ...prev])
+    setIsModalOpen(false)
   }
 
   const upcomingTasks = tasks.filter(task => 
