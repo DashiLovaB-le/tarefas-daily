@@ -148,6 +148,9 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
   
+  // Monitorar métricas de cache
+  monitorCacheMetrics(request);
+  
   // Ignora requisições de outros domínios (exceto APIs conhecidas)
   if (url.origin !== self.location.origin && !url.pathname.startsWith('/api/')) {
     return;
@@ -461,12 +464,12 @@ function isOnline() {
 }
 
 // Listener para mudanças de conectividade
-self.addEventListener('online', (event) => {
+self.addEventListener('online', () => {
   console.log('Service Worker: Conectividade restaurada');
   // Sincronizar dados pendentes se necessário
 });
 
-self.addEventListener('offline', (event) => {
+self.addEventListener('offline', () => {
   console.log('Service Worker: Modo offline detectado');
 });
 
@@ -568,12 +571,10 @@ self.addEventListener('activate', (event) => {
   logSWEvent('activate', { cacheName: CACHE_NAME });
 });
 
-self.addEventListener('fetch', (event) => {
-  // Atualizar métricas de cache
-  const url = new URL(event.request.url);
-  
+// Monitorar métricas de cache (separado do handler principal de fetch)
+function monitorCacheMetrics(request) {
   // Verificar se a requisição será servida do cache
-  caches.match(event.request).then(cachedResponse => {
+  caches.match(request).then(cachedResponse => {
     if (cachedResponse) {
       updateCacheStats('hits');
     } else {
@@ -583,13 +584,13 @@ self.addEventListener('fetch', (event) => {
   });
   
   // Log apenas requisições importantes para evitar spam
-  if (event.request.url.includes('/api/') || event.request.url.includes('version.json')) {
+  if (request.url.includes('/api/') || request.url.includes('version.json')) {
     logSWEvent('fetch', { 
-      url: event.request.url, 
-      method: event.request.method 
+      url: request.url, 
+      method: request.method 
     });
   }
-});
+}
 
 // Monitorar erros
 self.addEventListener('error', (event) => {

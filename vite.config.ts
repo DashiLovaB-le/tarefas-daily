@@ -10,6 +10,9 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    headers: {
+      'Content-Type': 'application/javascript; charset=utf-8'
+    }
   },
   plugins: [
     react(),
@@ -23,8 +26,14 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     assetsDir: 'assets',
+    target: 'esnext',
+    minify: 'esbuild',
     rollupOptions: {
       output: {
+        format: 'es',
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
         manualChunks: {
           vendor: ['react', 'react-dom'],
           supabase: ['@supabase/supabase-js'],
@@ -32,5 +41,6 @@ export default defineConfig(({ mode }) => ({
         }
       }
     }
-  }
+  },
+  assetsInclude: ['**/*.woff', '**/*.woff2', '**/*.ttf', '**/*.otf']
 }));
