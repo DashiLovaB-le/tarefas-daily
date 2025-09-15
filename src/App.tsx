@@ -4,14 +4,11 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import ProtectedRoute from "@/components/ProtectedRoute";
 import { UpdateNotification } from "@/components/UpdateNotification";
 import { ShareNotification } from "@/components/ShareNotification";
 import { versionChecker } from "@/lib/version-check";
 import { analytics } from "@/lib/analytics";
 import { useAnalytics } from "@/hooks/useAnalytics";
-import LoginPage from "./pages/Login";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Today from "./pages/Today";
@@ -25,79 +22,16 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const AppRoutes = () => {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   return (
     <Routes>
-      <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" />} />
-      <Route 
-        path="/" 
-        element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} 
-      />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/today"
-        element={
-          <ProtectedRoute>
-            <Today />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/upcoming"
-        element={
-          <ProtectedRoute>
-            <Upcoming />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/projects"
-        element={
-          <ProtectedRoute>
-            <Projects />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/starred"
-        element={
-          <ProtectedRoute>
-            <Starred />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/completed"
-        element={
-          <ProtectedRoute>
-            <Completed />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <ProtectedRoute>
-            <Settings />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/" element={<Navigate to="/dashboard" />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/today" element={<Today />} />
+      <Route path="/upcoming" element={<Upcoming />} />
+      <Route path="/projects" element={<Projects />} />
+      <Route path="/starred" element={<Starred />} />
+      <Route path="/completed" element={<Completed />} />
+      <Route path="/settings" element={<Settings />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
