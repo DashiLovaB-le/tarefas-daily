@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Star, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -6,7 +6,6 @@ import TaskCardAdapter from "@/components/TaskCardAdapter"
 import TaskModalAdapter from "@/components/TaskModalAdapter"
 import AppLayout from "@/components/layout/AppLayout"
 import AppHeader from "@/components/layout/AppHeader"
-import { supabase } from "@/integrations/supabase/client"
 
 interface Task {
   id: string
@@ -21,151 +20,80 @@ interface Task {
 
 const Starred = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchStarredTasks()
-  }, [])
-
-  const fetchStarredTasks = async () => {
-    try {
-      setLoading(true)
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        console.error('Usuário não autenticado')
-        return
-      }
-
-      const { data, error } = await supabase
-        .from('tasks')
-        .select(`
-          *,
-          task_tags (
-            tags (
-              name
-            )
-          )
-        `)
-        .eq('user_id', user.id)
-        .eq('is_starred', true)
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-
-      // Mapear dados do Supabase para o formato esperado
-      const mappedTasks = (data || []).map(task => ({
-        id: task.id,
-        title: task.title,
-        description: task.description || '',
-        priority: (task.priority || 'medium') as 'high' | 'medium' | 'low',
-        status: (task.status || 'pending') as 'pending' | 'in-progress' | 'completed',
-        dueDate: task.due_date || '',
-        tags: task.task_tags?.map((tt: any) => tt.tags?.name).filter(Boolean) || [],
-        starred: task.is_starred
-      }))
-
-      setTasks(mappedTasks)
-    } catch (error) {
-      console.error('Erro ao buscar tarefas favoritas:', error)
-    } finally {
-      setLoading(false)
+  // Mock data for starred tasks
+  const [tasks, setTasks] = useState<Task[]>([
+    {
+      id: "1",
+      title: "Finalizar apresentação para cliente",
+      description: "Preparar slides e ensaiar apresentação",
+      priority: "high",
+      status: "in-progress",
+      dueDate: "2024-01-20",
+      tags: ["Urgente", "Cliente"],
+      starred: true
+    },
+    {
+      id: "2",
+      title: "Revisar código do módulo de pagamentos",
+      description: "Code review e testes de segurança",
+      priority: "high",
+      status: "pending",
+      dueDate: "2024-01-18",
+      tags: ["Desenvolvimento", "Segurança"],
+      starred: true
+    },
+    {
+      id: "3",
+      title: "Reunião com equipe de design",
+      description: "Alinhar próximos passos do projeto",
+      priority: "medium",
+      status: "completed",
+      dueDate: "2024-01-15",
+      tags: ["Reunião", "Design"],
+      starred: true
+    },
+    {
+      id: "4",
+      title: "Implementar dashboard de analytics",
+      description: "Criar métricas e gráficos de performance",
+      priority: "medium",
+      status: "in-progress",
+      dueDate: "2024-01-25",
+      tags: ["Frontend", "Analytics"],
+      starred: true
+    },
+    {
+      id: "5",
+      title: "Documentar API de usuários",
+      description: "Atualizar swagger e guias de uso",
+      priority: "low",
+      status: "pending",
+      dueDate: "2024-01-30",
+      tags: ["Documentação", "API"],
+      starred: true
     }
+  ])
+
+  const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId ? { ...task, ...updates } : task
+    ))
   }
 
-  const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const completedAt = updates.status === 'completed' ? new Date().toISOString() : null
-
-      const { error } = await supabase
-        .from('tasks')
-        .update({
-          title: updates.title,
-          description: updates.description,
-          priority: updates.priority,
-          due_date: updates.dueDate,
-          status: updates.status,
-          is_starred: updates.starred,
-          completed_at: completedAt,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', taskId)
-        .eq('user_id', user.id)
-
-      if (error) throw error
-      
-      setTasks(prev => prev.map(task => 
-        task.id === taskId ? { ...task, ...updates } : task
-      ))
-    } catch (error) {
-      console.error('Erro ao atualizar tarefa:', error)
-    }
+  const handleTaskDelete = (taskId: string) => {
+    setTasks(prev => prev.filter(task => task.id !== taskId))
   }
 
-  const handleTaskDelete = async (taskId: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', taskId)
-        .eq('user_id', user.id)
-
-      if (error) throw error
-      
-      setTasks(prev => prev.filter(task => task.id !== taskId))
-    } catch (error) {
-      console.error('Erro ao excluir tarefa:', error)
+  const handleCreateTask = (newTask: Omit<Task, 'id'>) => {
+    const task: Task = {
+      id: Date.now().toString(),
+      ...newTask,
+      starred: true // Automaticamente marca como favorita quando criada nesta página
     }
-  }
-
-  const handleCreateTask = async (newTask: Omit<Task, 'id'>) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data, error } = await supabase
-        .from('tasks')
-        .insert([
-          {
-            title: newTask.title,
-            description: newTask.description,
-            priority: newTask.priority,
-            due_date: newTask.dueDate,
-            status: newTask.status,
-            is_starred: true, // Automaticamente marca como favorita quando criada nesta página
-            user_id: user.id,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        ])
-        .select()
-        .single()
-
-      if (error) throw error
-      
-      const task: Task = {
-        id: data.id,
-        title: data.title,
-        description: data.description || '',
-        priority: (data.priority || 'medium') as 'high' | 'medium' | 'low',
-        status: (data.status || 'pending') as 'pending' | 'in-progress' | 'completed',
-        dueDate: data.due_date || '',
-        tags: [],
-        starred: data.is_starred
-      }
-      
-      setTasks(prev => [task, ...prev])
-      setIsModalOpen(false)
-    } catch (error) {
-      console.error('Erro ao criar tarefa:', error)
-    }
+    
+    setTasks(prev => [task, ...prev])
+    setIsModalOpen(false)
   }
 
   const starredTasks = tasks.filter(task => task.starred)
@@ -181,7 +109,7 @@ const Starred = () => {
           className="gradient-button"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Favoritas
+          Nova Favorita
         </Button>
       </AppHeader>
 

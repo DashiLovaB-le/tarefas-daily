@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react"
-import { Folder, Plus, User, Archive } from "lucide-react"
+import { useState } from "react"
+import { Folder, Plus, User, Archive, Briefcase } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -7,7 +7,6 @@ import TaskCardAdapter from "@/components/TaskCardAdapter"
 import TaskModalAdapter from "@/components/TaskModalAdapter"
 import AppLayout from "@/components/layout/AppLayout"
 import AppHeader from "@/components/layout/AppHeader"
-import { supabase } from "@/integrations/supabase/client"
 
 interface Task {
   id: string
@@ -31,189 +30,145 @@ interface Project {
 const Projects = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedProject, setSelectedProject] = useState<string>("")
-  const [projects, setProjects] = useState<Project[]>([])
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchProjectsAndTasks()
-  }, [])
-
-  const fetchProjectsAndTasks = async () => {
-    try {
-      setLoading(true)
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        console.error('Usuário não autenticado')
-        return
-      }
-
-      // Buscar projetos
-      const { data: projectsData, error: projectsError } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_archived', false)
-        .order('created_at', { ascending: false })
-
-      if (projectsError) throw projectsError
-
-      // Buscar tarefas com projetos
-      const { data: tasksData, error: tasksError } = await supabase
-        .from('tasks')
-        .select(`
-          *,
-          task_tags (
-            tags (
-              name
-            )
-          ),
-          projects (
-            name
-          )
-        `)
-        .eq('user_id', user.id)
-        .not('project_id', 'is', null)
-        .order('created_at', { ascending: false })
-
-      if (tasksError) throw tasksError
-
-      // Mapear projetos
-      const mappedProjects = (projectsData || []).map(project => ({
-        id: project.id,
-        name: project.name,
-        icon: getProjectIcon(project.icon),
-        color: project.color || 'bg-blue-500',
-        taskCount: 0 // Será calculado depois
-      }))
-
-      // Mapear tarefas
-      const mappedTasks = (tasksData || []).map(task => ({
-        id: task.id,
-        title: task.title,
-        description: task.description || '',
-        priority: (task.priority || 'medium') as 'high' | 'medium' | 'low',
-        status: (task.status || 'pending') as 'pending' | 'in-progress' | 'completed',
-        dueDate: task.due_date || '',
-        tags: task.task_tags?.map((tt: any) => tt.tags?.name).filter(Boolean) || [],
-        project: task.project_id
-      }))
-
-      // Calcular contagem de tarefas por projeto
-      const projectsWithCount = mappedProjects.map(project => ({
-        ...project,
-        taskCount: mappedTasks.filter(task => task.project === project.id).length
-      }))
-
-      setProjects(projectsWithCount)
-      setTasks(mappedTasks)
-    } catch (error) {
-      console.error('Erro ao buscar projetos e tarefas:', error)
-    } finally {
-      setLoading(false)
+  // Mock data for projects
+  const [projects] = useState<Project[]>([
+    {
+      id: "1",
+      name: "Projeto Website",
+      icon: Briefcase,
+      color: "bg-gradient-to-br from-blue-500 to-blue-600",
+      taskCount: 3
+    },
+    {
+      id: "2", 
+      name: "Aplicativo Mobile",
+      icon: User,
+      color: "bg-gradient-to-br from-green-500 to-green-600",
+      taskCount: 2
+    },
+    {
+      id: "3",
+      name: "Sistema Interno",
+      icon: Archive,
+      color: "bg-gradient-to-br from-purple-500 to-purple-600", 
+      taskCount: 4
     }
+  ])
+
+  // Mock data for tasks
+  const [tasks, setTasks] = useState<Task[]>([
+    {
+      id: "1",
+      title: "Criar página inicial",
+      description: "Desenvolver layout responsivo da homepage",
+      priority: "high",
+      status: "in-progress",
+      dueDate: "2024-01-20",
+      tags: ["Frontend", "Design"],
+      project: "1"
+    },
+    {
+      id: "2",
+      title: "Configurar banco de dados",
+      description: "Setup inicial do PostgreSQL",
+      priority: "medium",
+      status: "completed",
+      dueDate: "2024-01-15",
+      tags: ["Backend", "Database"],
+      project: "1"
+    },
+    {
+      id: "3",
+      title: "Implementar autenticação",
+      description: "Sistema de login e registro",
+      priority: "high",
+      status: "pending",
+      dueDate: "2024-01-25",
+      tags: ["Backend", "Security"],
+      project: "1"
+    },
+    {
+      id: "4",
+      title: "Design de telas",
+      description: "Criar wireframes das principais telas",
+      priority: "medium",
+      status: "in-progress",
+      dueDate: "2024-01-18",
+      tags: ["UI/UX", "Design"],
+      project: "2"
+    },
+    {
+      id: "5",
+      title: "Integração com API",
+      description: "Conectar frontend com backend",
+      priority: "high",
+      status: "pending",
+      dueDate: "2024-01-30",
+      tags: ["Frontend", "API"],
+      project: "2"
+    },
+    {
+      id: "6",
+      title: "Módulo de relatórios",
+      description: "Implementar dashboard com gráficos",
+      priority: "medium",
+      status: "pending",
+      dueDate: "2024-02-05",
+      tags: ["Frontend", "Charts"],
+      project: "3"
+    },
+    {
+      id: "7",
+      title: "Sistema de permissões",
+      description: "Controle de acesso por usuários",
+      priority: "high",
+      status: "in-progress",
+      dueDate: "2024-01-28",
+      tags: ["Backend", "Security"],
+      project: "3"
+    },
+    {
+      id: "8",
+      title: "Backup automático",
+      description: "Rotina de backup dos dados",
+      priority: "low",
+      status: "pending",
+      dueDate: "2024-02-10",
+      tags: ["DevOps", "Automation"],
+      project: "3"
+    },
+    {
+      id: "9",
+      title: "Testes unitários",
+      description: "Criar suite de testes",
+      priority: "medium",
+      status: "completed",
+      dueDate: "2024-01-12",
+      tags: ["Testing", "Quality"],
+      project: "3"
+    }
+  ])
+
+  const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId ? { ...task, ...updates } : task
+    ))
   }
 
-  const getProjectIcon = (iconName: string | null) => {
-    switch (iconName) {
-      case 'User': return User
-      case 'Archive': return Archive
-      default: return Folder
-    }
+  const handleTaskDelete = (taskId: string) => {
+    setTasks(prev => prev.filter(task => task.id !== taskId))
   }
 
-  const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const completedAt = updates.status === 'completed' ? new Date().toISOString() : null
-
-      const { error } = await supabase
-        .from('tasks')
-        .update({
-          title: updates.title,
-          description: updates.description,
-          priority: updates.priority,
-          due_date: updates.dueDate,
-          status: updates.status,
-          completed_at: completedAt,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', taskId)
-        .eq('user_id', user.id)
-
-      if (error) throw error
-      
-      setTasks(prev => prev.map(task => 
-        task.id === taskId ? { ...task, ...updates } : task
-      ))
-    } catch (error) {
-      console.error('Erro ao atualizar tarefa:', error)
+  const handleCreateTask = (newTask: Omit<Task, 'id'>) => {
+    const task: Task = {
+      id: Date.now().toString(),
+      ...newTask,
+      project: selectedProject || undefined
     }
-  }
-
-  const handleTaskDelete = async (taskId: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', taskId)
-        .eq('user_id', user.id)
-
-      if (error) throw error
-      
-      setTasks(prev => prev.filter(task => task.id !== taskId))
-    } catch (error) {
-      console.error('Erro ao excluir tarefa:', error)
-    }
-  }
-
-  const handleCreateTask = async (newTask: Omit<Task, 'id'>) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data, error } = await supabase
-        .from('tasks')
-        .insert([
-          {
-            title: newTask.title,
-            description: newTask.description,
-            priority: newTask.priority,
-            due_date: newTask.dueDate,
-            status: newTask.status,
-            project_id: selectedProject || null,
-            user_id: user.id,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        ])
-        .select()
-        .single()
-
-      if (error) throw error
-      
-      const task: Task = {
-        id: data.id,
-        title: data.title,
-        description: data.description || '',
-        priority: (data.priority || 'medium') as 'high' | 'medium' | 'low',
-        status: (data.status || 'pending') as 'pending' | 'in-progress' | 'completed',
-        dueDate: data.due_date || '',
-        tags: [],
-        project: data.project_id
-      }
-      
-      setTasks(prev => [task, ...prev])
-      setIsModalOpen(false)
-    } catch (error) {
-      console.error('Erro ao criar tarefa:', error)
-    }
+    
+    setTasks(prev => [task, ...prev])
+    setIsModalOpen(false)
   }
 
   const getProjectTasks = (projectId: string) => {
